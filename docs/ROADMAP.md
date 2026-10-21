@@ -1,6 +1,6 @@
 # Five-day implementation roadmap
 
-The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B are implemented and verified; 3A is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records what actually exists. Further slices require a subsequent task instruction.
+The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B/3A are implemented and verified; 4A is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records what actually exists. Further slices require a subsequent task instruction.
 
 ## Model policy
 
@@ -48,7 +48,7 @@ Use the user's project names consistently: architecture/ambiguous design = **GPT
 
 ## Day 3 — Durable Research Missions and immutable results
 
-### 3A: End-to-end mission engine
+### 3A: End-to-end mission engine (completed)
 
 - Objective: combine personal retrieval, permitted SerpApi search, source processing, contradiction-aware synthesis, actions, immutable publication, and change comparison under Temporal.
 - Expected modules: application/research/, infrastructure/search/, infrastructure/workflows/, bootstrap/worker.py, research persistence, tests/workflows/ and publication tests.

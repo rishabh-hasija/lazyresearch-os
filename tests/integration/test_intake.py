@@ -67,6 +67,12 @@ def test_migration_schema_downgrade_and_upgrade(db: Engine) -> None:
         "collection",
         "collection_membership",
         "content_embedding",
+        "research_topic",
+        "research_mission",
+        "research_stage",
+        "research_evidence",
+        "research_result",
+        "research_proposal",
     }
     if "embedding_vector" in inspect(db).get_table_names():
         expected.add("embedding_vector")

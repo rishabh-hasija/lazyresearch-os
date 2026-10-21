@@ -1,6 +1,6 @@
 # Conceptual data model
 
-Approved conceptual model. Tasks 1B/2A/2B supply PostgreSQL intake/extraction, source-analysis runs/artifacts, immutable retrieval chunks, optional embeddings and scoped retrieval. Research and mutable ActionItem persistence remain planned. IDs use UUIDs with distinct NewType aliases where previously defined; instants reject naive values and normalize to UTC. Deadline uncertainty remains explicit.
+Approved conceptual model. Tasks 1B/2A/2B supply PostgreSQL intake/extraction, source-analysis runs/artifacts, immutable retrieval chunks, optional embeddings and scoped retrieval. Task 3A adds research topics/missions/evidence/results/proposals; mutable ActionItem persistence remains planned. IDs use UUIDs with distinct NewType aliases where previously defined; instants reject naive values and normalize to UTC. Deadline uncertainty remains explicit.
 
 ## Implemented retrieval storage (Task 2B)
 
@@ -153,3 +153,9 @@ TabPFN produces four-class probabilities for ranking, not summaries, factual cla
 Authorize every source read, retrieval, result, vector query, and export. Logs retain IDs, stage/timing and sanitized error categories, not raw content, search secrets, or private questions. Scope Gmail credentials separately when introduced; revocation stops future jobs and permits deleting prior ingested data.
 
 Deletion first denies reads/cancels jobs, then purges original payloads, extractions, chunks/vectors, analyses, features, and evidence quotes. Remove or redact affected result payloads/actions because they may reproduce private content; retain only minimal non-content tombstones where needed for integrity. Display "source removed" and unavailable result content rather than claiming intact citations. Prevent running workers from resurrecting deleted data using ownership/deletion-generation checks. Immutable history means no ordinary edits, not indefinite retention against deletion requests. Backup retention/expiry and external-provider retention remain unresolved gates before real personal data. Exports already downloaded cannot be remotely revoked.
+
+## Implemented mission persistence (3A)
+
+Migration 0004 adds research_topic (owner/title/description/current pointer/counters/timestamps), research_mission (frozen question/scope/baseline/run sequence plus separate status/stage/dispatch/freeze/timestamps/failure), research_stage (immutable bounded operation receipts), research_evidence (scoped source/extraction/chunk foreign keys and exact locator/metadata payload), research_result (unique mission and topic/version, immutable brief/evidence/conflicts/changes/processing), and research_proposal (unique result/ordinal with existing domain ActionProposal provenance/deadline values).
+
+Circular current/baseline foreign keys are deferred and owner/topic scoped. Mission/evidence guards enforce freezing; artifacts reject ordinary update/delete. Publication locks topic then mission, validates stored chunks and citations, inserts result/proposals and completes the mission atomically. Domain plan_publication remains the Current Brief policy. A slower older request can become a higher numbered historical publication without taking Current Brief. Comparison stores absent evidence as unavailable, not false. Result-specific proposal storage leaves the validated source-analysis proposal table unchanged; mutable user task persistence is still future work.

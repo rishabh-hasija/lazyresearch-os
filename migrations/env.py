@@ -4,7 +4,7 @@ import os
 
 from alembic import context
 
-from lazyresearch.infrastructure.persistence import retrieval_models  # noqa: F401
+from lazyresearch.infrastructure.persistence import mission_models, retrieval_models  # noqa: F401
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.models import Base
 

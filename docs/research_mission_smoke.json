@@ -1,0 +1,62 @@
+{
+  "mission_seconds": 40.8076582000358,
+  "model": "gemma4:e4b",
+  "runtime": "0.40.6",
+  "evidence_count": 2,
+  "synthesis_seconds": 37.57690740004182,
+  "repaired": true,
+  "citation_validation": "passed",
+  "result_id": "3a537394-e534-592d-bcf4-3fefb86cdfc8",
+  "temporal": "completed",
+  "output": {
+    "brief": {
+      "answer": {
+        "text": "The HomeCell system battery stores 10 kWh [136d973c-c7f1-5158-9398-effae4679fb2, 38919e70-ba92-59e5-8102-e55f1997d627]. There are differing quotes regarding the cost: one states the HomeCell system costs EUR 5000 for 10 kWh, while another installer quotes EUR 5500 including installation [136d973c-c7f1-5158-9398-effae4679fb2, 38919e70-ba92-59e5-8102-e55f1997d627]. It is advised to confirm the installation scope before comparing costs [38919e70-ba92-59e5-8102-e55f1997d627].",
+        "support": "UNREVIEWED",
+        "evidence": [
+          "136d973c-c7f1-5158-9398-effae4679fb2",
+          "38919e70-ba92-59e5-8102-e55f1997d627"
+        ],
+        "uncertainty": "medium"
+      },
+      "claims": [],
+      "summary": {
+        "text": "The HomeCell battery system has a capacity of 10 kWh [136d973c-c7f1-5158-9398-effae4679fb2, 38919e70-ba92-59e5-8102-e55f1997d627]. Pricing varies: one source lists the system at EUR 5000, and another quotes EUR 5500 including installation [136d973c-c7f1-5158-9398-effae4679fb2, 38919e70-ba92-59e5-8102-e55f1997d627]. A site assessment was requested by 2026-11-07 [136d973c-c7f1-5158-9398-effae4679fb2].",
+        "support": "UNREVIEWED",
+        "evidence": [
+          "136d973c-c7f1-5158-9398-effae4679fb2",
+          "38919e70-ba92-59e5-8102-e55f1997d627"
+        ],
+        "uncertainty": "medium"
+      },
+      "findings": [
+        {
+          "text": "There is an unresolved conflict regarding the price of the battery, which requires verification of scope, units, and applicability [136d973c-c7f1-5158-9398-effae4679fb2, 38919e70-ba92-59e5-8102-e55f1997d627].",
+          "support": "UNREVIEWED",
+          "evidence": [
+            "136d973c-c7f1-5158-9398-effae4679fb2",
+            "38919e70-ba92-59e5-8102-e55f1997d627"
+          ],
+          "uncertainty": "medium"
+        }
+      ],
+      "comparisons": [],
+      "open_questions": [],
+      "schema_version": "research-v1",
+      "recommendations": [],
+      "action_candidates": [],
+      "missing_information": [],
+      "coverage_limitations": []
+    },
+    "model": "gemma4:e4b",
+    "runtime": "0.40.6",
+    "provider": "ollama",
+    "repaired": true,
+    "prompt_hash": "25c5b79692dc433aab6ddb58b9454d93e3593352fd035ec30c21b8f6052f65b6",
+    "model_revision": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+    "latency_seconds": 37.57690740004182
+  },
+  "serpapi": {
+    "status": "skipped_missing_credentials"
+  }
+}

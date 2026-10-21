@@ -1,18 +1,27 @@
-"""Reference lookup only: transactional publication is deliberately deferred."""
+"""Domain lookup and transactional mission creation/publication contract."""
 
 from typing import Protocol
+from uuid import UUID
 
+from lazyresearch.application.mission_models import MissionScope
 from lazyresearch.domain.identity import MissionId, OwnerId, ResultId, TopicId
 from lazyresearch.domain.research import ResearchMission, ResearchResult, ResearchTopic
 
 
 class ResearchRepository(Protocol):
-    """Missing/other-owner lookups return None; storage failures raise RepositoryError.
+    """Scoped lookup and atomic publication; operational stage methods live in MissionStore."""
 
-    Publication requires locked reads, version allocation and atomic writes. Its
-    port will be introduced with that use case, rather than exposing an unsafe
-    save(result) method or pretending a pure decision is a transaction receipt.
-    """
+    def create_topic(
+        self, owner: UUID, title: str, description: str | None = None
+    ) -> ResearchTopic: ...
+
+    def create_mission(
+        self, owner: UUID, topic: UUID, question: str, scope: MissionScope
+    ) -> ResearchMission: ...
+
+    def publish(self, owner: UUID, mission: UUID) -> UUID: ...
+
+    def versions(self, owner: UUID, topic: UUID) -> tuple[ResearchResult, ...]: ...
 
     def get_topic(self, owner_id: OwnerId, topic_id: TopicId) -> ResearchTopic | None: ...
 

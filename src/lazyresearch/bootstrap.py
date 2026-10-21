@@ -6,12 +6,16 @@ from sqlalchemy import Engine
 
 from lazyresearch.application.analysis import ProcessPendingContent
 from lazyresearch.application.intake import IntakeService
+from lazyresearch.application.mission_models import MissionScope
+from lazyresearch.application.missions import ResearchOperations
 from lazyresearch.application.retrieval import GenerateMissingEmbeddings, RetrieveEvidence
 from lazyresearch.infrastructure.ai.embeddings import OllamaEmbeddings
 from lazyresearch.infrastructure.ai.ollama import OllamaProcessor, configured_ollama
+from lazyresearch.infrastructure.ai.synthesis import OllamaResearchSynthesizer
 from lazyresearch.infrastructure.config import Settings
 from lazyresearch.infrastructure.persistence.analysis import SQLAlchemyAnalysisStore
 from lazyresearch.infrastructure.persistence.database import database_engine
+from lazyresearch.infrastructure.persistence.missions import PostgreSQLMissionStore
 from lazyresearch.infrastructure.persistence.repositories import (
     SQLAlchemyIntakeStore,
     SQLAlchemyProcessingRepository,
@@ -20,6 +24,7 @@ from lazyresearch.infrastructure.persistence.retrieval import (
     PostgreSQLRetrievalStore,
     PostgreSQLVectorStore,
 )
+from lazyresearch.infrastructure.search import SerpApiSearch
 from lazyresearch.infrastructure.sources.extract import SourceTextExtractor
 from lazyresearch.infrastructure.sources.http import HTTPFetcher
 
@@ -73,4 +78,30 @@ def build_embeddings(
     retrieval = build_retrieval(settings, engine=engine)
     return GenerateMissingEmbeddings(
         retrieval.vectors, retrieval.provider, retrieval.embeddings, retrieval.chunks
+    )
+
+
+def default_mission_scope(settings: Settings, *, public: bool = False) -> MissionScope:
+    return MissionScope(
+        public=public,
+        vector=settings.vector_search_enabled,
+        max_queries=settings.search_max_queries,
+        max_sources=settings.search_max_results,
+    )
+
+
+def build_research(settings: Settings, *, engine: Engine | None = None) -> ResearchOperations:
+    if settings.search_provider != "serpapi" or settings.ai.provider != "ollama":
+        raise ValueError("unsupported research provider")
+    database = engine if engine is not None else database_engine(settings.database_url)
+    return ResearchOperations(
+        PostgreSQLMissionStore(database),
+        build_retrieval(settings, engine=database),
+        build_intake(settings, engine=database),
+        SerpApiSearch(
+            settings.serpapi_api_key, settings.search_timeout_seconds, settings.search_max_results
+        ),
+        OllamaResearchSynthesizer(
+            settings.ai_endpoint, settings.ai.model, settings.ai.timeout_seconds
+        ),
     )

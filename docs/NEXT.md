@@ -1,31 +1,15 @@
-# Next task: 3A — End-to-end Research Mission engine
+# Next task: 4A — Catch Up ranking with TabPFN and honest cold start
 
-Tasks 1A, 1B, 2A and 2B are complete and validated. The single next slice is an end-to-end Research Mission engine spanning personal retrieval, permitted SerpApi public research, durable Temporal orchestration, contradiction-aware synthesis, immutable ResearchResult publication, actions and change comparison. Wait for a new user instruction. Task 3A has not started.
+Tasks 1A, 1B, 2A, 2B and 3A are implemented and validated. Task 3A changes are unstaged and uncommitted on checkpoint **4db9100**. Wait for the user's next task instruction; do not begin 4A automatically.
 
-**Recommended Codex: GPT-6 Astra, Medium reasoning. Alternative Claude Code: Claude Opus 5.** This slice crosses external systems, workflows, provenance and publication transactions. Apply AGENTS.md's model-selection guard; do not assume or claim to switch the active model.
+**Recommended Codex: GPT-6.1 Sol, Medium. Alternative Claude Code: Claude Sonnet 5.** Apply AGENTS.md's model-selection guard; do not guess identity or claim to switch the parent model.
 
-## Read first and preserve
+Read AGENTS, README, PRODUCT, ARCHITECTURE, DATA_MODEL, PARTNERS, ROADMAP, STATUS and RESEARCH_MISSION_BENCHMARK, plus ADR 0007 and relevant existing boundaries. Task 4A should introduce honest ranking/cold-start behavior only under the next brief, preserving ingestion, analysis, scoped retrieval and durable missions. Do not fold UI, hosting, authentication, connectors or exports into ranking without authorization.
 
-Read AGENTS, README, PRODUCT, ARCHITECTURE, DATA_MODEL, PARTNERS, STATUS, RETRIEVAL_BENCHMARK, GEMMA_BENCHMARK and relevant ADRs (especially durable workflows, source/analysis separation and immutable research versioning). Inspect the existing domain publication policy and retrieval/analysis/intake ports before designing runtime contracts.
+Preserve immutable originals, analyses, chunks, research evidence/results/actions; owner scope; lexical fallback; explicit public permission; citation validity versus UNREVIEWED support; and request-order Current Brief versus publication-order version. PostgreSQL 17.11 remains canonical. Head migration is **0004**; do not rewrite 0001–0004. All Task 3A validation and known limitations are in STATUS and RESEARCH_MISSION_BENCHMARK.
 
-Checkpoint 3987683 covers the completed foundation before 2B. Task 2B changes were left unstaged/uncommitted. Head migration is 0003. Preserve 0001/0002/0003 and validated intake/analysis/retrieval behavior. Use the established isolated PostgreSQL 17.11/.env setup without exposing credentials; downgrade only disposable databases/schemas.
+Local Ollama 0.40.6 has gemma4:e4b and qwen3-embedding:latest. Temporal SDK 1.34.0 is installed; ignored .local-tools holds CLI 1.9.1 and a running localhost-only dev server at 127.0.0.1:7233. scripts/research_worker.py starts the application worker/reconciler explicitly; no production worker service was installed. Real SerpApi smoke was skipped for missing credentials. Do not request or reveal secrets just to run deterministic ranking tests.
 
-Local models: gemma4:e4b for source analysis and qwen3-embedding:latest for optional retrieval embeddings. Selected embedding space is 4,096 dimensions with explicit normalization/query instruction/revision identity. pgvector 0.8.7 was installed in the isolated container; a fresh vanilla container may have lexical-only capability. Lexical remains default and works without inference or vectors. Reindex explicit chunks after new extraction versions; citation identities stay immutable.
+Research limitations to preserve honestly: heuristic conflict/change detection, simple query sanitization, AND-token lexical recall, bounded evidence coverage, external calls potentially repeating across crash windows, and the real Gemma smoke missing an explicit action. No factual entailment proof or general action-recall claim. Citation validation passed. No generic agent framework.
 
-## Expected responsibilities
-
-- Freeze each mission's question, owner/topic, permissions, evidence scope, budget and baseline; allocate run sequence using the approved publication semantics.
-- Use current owner/collection/visibility-scoped personal retrieval. Preserve exact source/extraction/chunk locators and retrieval metadata when creating mission evidence.
-- Use SerpApi only for explicitly permitted public research. Sanitize queries and do not leak private source payloads/titles into search or workflow history. Inspect actual account/configuration and required credentials safely when this slice is authorized.
-- Keep Temporal SDK objects in infrastructure. Durable workflows carry opaque IDs and bounded metadata; activities perform network/model/DB work outside deterministic replay.
-- Bound activity budgets, retries, cancellation and recovery. Reuse persisted stage outputs with stable operation identities; do not promise exactly-once external calls.
-- Introduce synthesis capability only as justified, separately from existing source analysis. Validate citation identity and represent contradictions, missing information and uncertainty without treating citation resolution as factual proof.
-- Publish immutable ResearchResult/evidence/actions and completed mission state transactionally. Allocate versions under the approved topic lock and preserve mission/result uniqueness, frozen baseline and Current Brief ordering by run sequence.
-- Failed/cancelled reruns leave the prior Current Brief intact; out-of-order completions preserve history without replacing a newer requested result.
-- Produce deterministic added/removed/changed evidence/claim/action comparisons against the frozen baseline; distinguish model-only changes from new source snapshots.
-
-## Verification and boundaries
-
-Keep all **347 tests** passing. Add fake-provider deterministic mission/recovery/publication/concurrency tests and real PostgreSQL transactions. Run actual bounded SerpApi/Temporal/model smokes separately when configured and authorized; report unavailable checks honestly. Validate fresh and additive migrations, safe one-revision rollback/re-upgrade, drift, Ruff, formatting, strict mypy and git/untracked-file audits.
-
-Update README/STATUS/NEXT with exact measured outcomes. Do not implement TabPFN/Catch Up prediction, Streamlit/API delivery, Render deployment, Gmail/RSS/Tinker, authentication, exports, OCR or autonomous external actions unless the new instruction explicitly authorizes them. Do not silently download multi-GB models or expose services publicly. Leave changes unstaged; no commit/push/amend unless requested.
+Keep prior tests passing, add meaningful ranking tests/evaluation from the forthcoming brief, run PostgreSQL integration/lint/format/types, document exact outcomes, and leave changes unstaged unless instructed otherwise. Do not commit, push or amend by default.

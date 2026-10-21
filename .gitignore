@@ -11,6 +11,7 @@ exports/
 
 # Future local Python tooling and build output
 .venv/
+.local-tools/
 __pycache__/
 *.py[cod]
 .pytest_cache/

@@ -22,12 +22,26 @@ class Settings:
     retrieval_limit: int = 5
     retrieval_per_source: int = 2
     rrf_k: int = 60
+    search_provider: str = "serpapi"
+    serpapi_api_key: str = field(default="", repr=False)
+    search_max_queries: int = 3
+    search_max_results: int = 10
+    search_timeout_seconds: float = 20
+    temporal_address: str = "127.0.0.1:7233"
+    temporal_namespace: str = "default"
+    temporal_task_queue: str = "lazyresearch-missions-v1"
 
     def __post_init__(self) -> None:
         if not 1 <= self.retrieval_limit <= 50 or not 1 <= self.retrieval_per_source <= 20:
             raise ValueError("invalid retrieval defaults")
         if not 1 <= self.rrf_k <= 1000:
             raise ValueError("invalid RRF constant")
+        if (
+            not 0 <= self.search_max_queries <= 3
+            or not 1 <= self.search_max_results <= 10
+            or not 1 <= self.search_timeout_seconds <= 60
+        ):
+            raise ValueError("invalid public search budget")
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -75,4 +89,12 @@ class Settings:
             int(values.get("RETRIEVAL_LIMIT", "5")),
             int(values.get("RETRIEVAL_PER_SOURCE_LIMIT", "2")),
             int(values.get("RRF_K", "60")),
+            search_provider=values.get("SEARCH_PROVIDER", "serpapi"),
+            serpapi_api_key=values.get("SERPAPI_API_KEY", ""),
+            search_max_queries=int(values.get("SEARCH_MAX_QUERIES", "3")),
+            search_max_results=int(values.get("SEARCH_MAX_RESULTS", "10")),
+            search_timeout_seconds=float(values.get("SEARCH_TIMEOUT_SECONDS", "20")),
+            temporal_address=values.get("TEMPORAL_ADDRESS", "127.0.0.1:7233"),
+            temporal_namespace=values.get("TEMPORAL_NAMESPACE", "default"),
+            temporal_task_queue=values.get("TEMPORAL_TASK_QUEUE", "lazyresearch-missions-v1"),
         )

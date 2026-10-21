@@ -26,7 +26,10 @@ Wire = Callable[[str, dict[str, object] | None, float], dict[str, object]]
 
 
 class OllamaHTTP:
-    def __init__(self, endpoint: str) -> None:
+    def __init__(
+        self, endpoint: str, *, error_classifier: Callable[[int, bytes], AIError] | None = None
+    ) -> None:
+        self.error_classifier = error_classifier
         parsed = urlsplit(endpoint)
         if (
             parsed.scheme not in {"http", "https"}
@@ -72,6 +75,8 @@ class OllamaHTTP:
                 )
                 response = connection.getresponse()
                 if response.status != 200:
+                    if self.error_classifier is not None:
+                        raise self.error_classifier(response.status, response.read(4096))
                     raise AIError("UNAVAILABLE")
                 raw = response.read(1024 * 1024 + 1)
                 if len(raw) > 1024 * 1024:

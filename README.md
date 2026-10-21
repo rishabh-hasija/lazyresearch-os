@@ -2,9 +2,9 @@
 
 Give it the things you were too lazy to read, organize, or research. LazyResearch OS is designed to find what matters in saved URLs, documents, and pasted text, combine personal evidence with fresh public research, and show what is worth knowing or doing. Saving should be easy; organization is the system's job.
 
-**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** personal retrieval (Tasks 1A/1B/2A/2B complete).
+**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** durable Research Missions (Tasks 1A/1B/2A/2B/3A complete).
 
-The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research runtime, learned ranking, UI/API, exports, and deployment remain planned.
+The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions now combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Learned ranking, UI/API, exports and deployment remain planned.
 
 Development uses **Python 3.12**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The approved future UI is Streamlit; the public demo uses synthetic content.
 
@@ -112,3 +112,26 @@ rtk proxy .\.venv\Scripts\python.exe scripts/benchmark_retrieval.py
 ```
 
 It creates fresh synthetic scopes/corpus, indexes chunks, performs actual local embedding generation and evaluates lexical/vector/hybrid modes over 12 labeled queries. It never runs as part of pytest, never loads `.env` implicitly, and never starts Research Missions.
+
+## Research Missions
+
+Migrate explicitly to **0004/head**. `build_research(settings)` wires ResearchOperations, PostgreSQLMissionStore, existing intake/retrieval, SerpApiSearch and OllamaResearchSynthesizer. `default_mission_scope(settings, public=False)` preserves configured retrieval/search budgets and requires explicit public permission. Use the store to create a topic, then `create_mission(owner, topic.id, question, scope)`. Topic association is explicit; every new mission freezes the current baseline and receives its own increasing run_sequence. The returned QUEUED receipt includes a durable dispatch intent.
+
+Run `scripts/research_worker.py` with DATABASE_URL, AI, search and Temporal settings exported. It connects to an already-running Temporal service, reconciles dispatches every five seconds and runs the worker. It never migrates, downloads models or starts servers. On this machine the ignored `.local-tools/temporal/temporal.exe` can run a localhost-only development service:
+
+```powershell
+rtk proxy .local-tools/temporal/temporal.exe server start-dev --ip 127.0.0.1 --headless --db-filename .local-tools/temporal.db
+rtk proxy .\.venv\Scripts\python.exe scripts/research_worker.py
+```
+
+The dev server is already running locally after Task 3A; do not start another process on port 7233. Its persistent file and downloaded CLI are ignored, not committed dependencies. See [mission measurements](docs/RESEARCH_MISSION_BENCHMARK.md) for exact versions and reproduction limits. Production runtime/hosting remains unimplemented.
+
+The workflow retrieves personal chunks, detects explicit gaps, searches only when permitted and justified, fetches selected URLs through existing intake, freezes exact evidence, retains heuristic conflicts, synthesizes a structured cited brief, validates citations/actions and publishes atomically. It passes only IDs/counts through Temporal history. Stage outputs are durable database records. Failed public sources yield a PARTIAL brief only if supported findings remain; no evidence fails with no result. Missing SerpApi credentials do not block personal evidence or deterministic tests.
+
+`store.get_topic`, `get_mission`, `get_result` and `versions` are owner scoped. Publication returns the existing result on retry; versions reflect publication order, while Current Brief follows the highest successful mission run_sequence. Baseline-relative changes retain source/evidence/model/recommendation/action distinctions. `cancel_mission(client, store, owner, mission)` fences publication in PostgreSQL before requesting workflow cancellation. The same mission cannot be rerun after terminal failure/cancellation; create another mission.
+
+Mission scope defaults: max 3 public queries (currently one deterministic question query), 10 fetched sources, 5 concurrent source tasks, 900 seconds, 8 evidence chunks / 6,000 characters, 2,400 output tokens. Collection IDs, personal/public permissions, retrieval modes and tighter budgets are frozen per mission. Search queries derive only from the question, never private evidence. Pattern sanitization is not universal PII detection. Snippets are discovery hints, not citations. Primary chunks bypass unnecessary source-analysis calls.
+
+Claims remain UNREVIEWED: exact citation validation is not factual entailment. Conflict detection and changed-claim pairing are heuristic. One bounded synthesis repair is permitted. The small real Gemma smoke passed citation validation but missed an explicit source task, so action extraction still needs human review. Historical snapshots remain immutable, and missing evidence never proves a claim false.
+
+For optional local runtime tests, set TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 before pytest; without it, only the three live Temporal tests skip. Ordinary deterministic mission tests use fake search/synthesis and real PostgreSQL. `scripts/smoke_research.py` separately runs real Gemma + Temporal + PostgreSQL on synthetic sources and one bounded SerpApi search/fetch only if a key is configured. It does not load `.env` implicitly. [STATUS](docs/STATUS.md) records actual validation; [NEXT](docs/NEXT.md) describes Task 4A, which requires a new instruction.

@@ -1,6 +1,6 @@
 # Architecture
 
-Approved target architecture. Tasks 1A/1B/2A/2B implement domain values/policies, durable intake, configurable source analysis, scoped lexical/optional vector retrieval, narrow ports, PostgreSQL adapters/migrations and composition wiring. Research runtime, API, UI, and deployment remain planned. See [status](STATUS.md), [data contracts](DATA_MODEL.md), [partner boundaries](PARTNERS.md), and [decision records](ADRS/0001-modular-monolith.md).
+Approved target architecture. Tasks 1A/1B/2A/2B implement domain values/policies, durable intake, configurable source analysis, scoped lexical/optional vector retrieval, narrow ports, PostgreSQL adapters/migrations and composition wiring. Task 3A adds durable research runtime and immutable publication. API, UI and deployment remain planned. See [status](STATUS.md), [data contracts](DATA_MODEL.md), [partner boundaries](PARTNERS.md), and [decision records](ADRS/0001-modular-monolith.md).
 
 ## Style and dependency direction
 
@@ -147,3 +147,9 @@ Markdown/JSON exporters later read an authorized immutable result/evidence proje
 The largest risks are inference resources, sparse ranking labels, citation support, private-data leakage, and the five-day integration budget. Avoid unnecessary entities by storing small topic/entity lists as schema-versioned analysis values until cross-analysis queries justify normalization. Avoid Temporal overuse by keeping the mission as its first boundary. Avoid adapter lock-in through capability checks and contract tests rather than a universal lowest-common-denominator SDK wrapper.
 
 Stack and synthetic-demo direction were approved in Task 1A. Deployment budget, retention, numeric limits, and inference location remain gated in PRODUCT.md. License/model access and exact runtime compatibility must be verified when selecting packages. Do not infer operational feasibility from domain tests or documentation research alone.
+
+## Implemented Research Missions (3A)
+
+ResearchOperations supplies small persisted stage operations; infrastructure/workflows owns Temporal v1 orchestration and activity bindings. No SDK moved into domain/application. ResearchSynthesizer is a narrow independent contract alongside source-analysis AIProcessor; SearchProvider emits discovery-only hits. Primary source chunks are sufficient for research synthesis, so source analysis is reused only when separately needed rather than required for every fetched page.
+
+Six mission tables and migration 0004 implement topic locks, frozen inputs/evidence, immutable result/proposal publication, dispatch intent and stage receipts. Workflow history carries IDs/counts only. Cancellation fences database writes first. Reconciliation resolves ambiguous starts and terminal/missing workflows. External calls remain at-least-once across crash windows. See RESEARCH_MISSION_BENCHMARK.md for measured recovery, concurrency, bounded defaults and limitations.

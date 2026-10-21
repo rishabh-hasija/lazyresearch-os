@@ -1,3 +1,40 @@
+# Task 3A — durable Research Missions
+
+Implemented on checkpoint **4db9100** (Add hybrid retrieval and pgvector support). User confirmed the required model was selected; exact active identity was not independently available and was not guessed. Recommended **GPT-6 Astra / Medium**, alternative **Claude Opus 5**. No subagents, commit, push, amend or staging.
+
+New modules: application/mission_models.py, mission_rules.py, mission_comparison.py and missions.py; ports/mission.py; infrastructure/search.py, ai/synthesis.py, persistence/mission_models.py and missions.py; infrastructure/workflows/research.py and runtime.py. Added migration 0004, worker/smoke scripts, synthetic test helpers, unit/search/PostgreSQL/Temporal tests, mission benchmark and raw synthetic smoke output. Updated research port, bootstrap/config, .env.example, dependency metadata, migration imports, schema inventory, Ollama's optional error classifier and documentation. Existing source-analysis transport behavior is preserved unless the synthesis-specific classifier is explicitly selected. Domain policies remain unchanged.
+
+Six new tables persist explicit topics, frozen missions, immutable stage receipts, exact mission evidence, immutable results and result-derived ActionProposals. Scope includes owner/collections/personal-public permissions/retrieval modes/budgets. Topic locks allocate monotonic run_sequence and publication version separately. Publication invokes the existing pure-domain policy, commits result/proposals/mission completion together, and retains Current Brief by highest successful request sequence. Owner/topic/source/extraction/chunk foreign keys, exact-locator validation and immutability guards protect provenance. Research evidence is frozen before synthesis.
+
+Personal retrieval reuses 2B; public discovery is conditional on explicit gaps and permission. The initial query strategy emits one sanitized question within a maximum of three. Private source text never enters query generation. SerpApi results are discovery only; selected URLs reuse secure intake, original bytes, extraction, deduplication and chunk indexing. Failed sources/search become explicit limitations; empty evidence produces no result. Source analysis is not redundantly required when original chunks are already available.
+
+Gemma ResearchSynthesizer emits research-v1 cited answer/summary/findings/comparisons/recommendations/claims/actions. All known citation IDs and exact locators are validated, with at most one repair. Conflicts remain separately persisted even if synthesis omits them. Support stays UNREVIEWED. Heuristic conflicts cover dates/prices/quantities/versions/recommendations/freshness. Baseline-relative changes distinguish source/evidence/model/recommendation/action differences; snapshot sets eliminate row-order ambiguity. Missing evidence is not falsity. Action proposals retain original locators, result identity, stable ordinal and conservative raw/normalized deadlines.
+
+Temporal SDK **1.34.0**, CLI **1.9.1**, server **1.32.0** run locally at **127.0.0.1:7233**. CLI/server files are ignored in .local-tools, with persistent dev storage and no public exposure. Workflows contain deterministic orchestration only; activities call application operations, with IDs/counts in history. Stage receipts and stable intake keys support recovery. Three transient attempts, source-specific activity boundaries, heartbeats, 900-second mission deadline, cooperative cancellation fencing and dispatch reconciliation are implemented. External calls can repeat across crash windows. Reconciliation handles ambiguous/missing starts and terminal workflow state. No generic agent framework or other infrastructure stack.
+
+## Actual validation
+
+- Final full suite with TEMPORAL_TEST_ADDRESS configured: **397 passed in 105.49s**, including all 347 pre-3A tests, **87 PostgreSQL integration tests** and all three live Temporal cases; no skips.
+- Separate PostgreSQL/Temporal integration suite: **86 passed in 90.20s** before that additional case.
+- Final three live Temporal tests: **3 passed in 17.06s**. Full mission completion/history replay; duplicate dispatch start; transient search retry across worker shutdown/restart; cancellation during synthesis; no-evidence failure; one-source timeout retry without rerunning its successful sibling; publication acknowledgment loss returns the same result.
+- PostgreSQL concurrency tests: eight simultaneous request sequences; reverse completion produces versions/run sequences [(1,2),(2,1)] while Current Brief stays run 2; repeated publication does not duplicate proposals.
+- Ruff: all checks passed. Formatting: **114 files already formatted**. Strict mypy: **54 source files**, no issues. pip check: no broken requirements.
+- Isolated migration DB: **0003 → 0004 → 0003 → 0004**, passed; Alembic drift: **No new upgrade operations detected**. Fresh/all-revision migration tests also pass. Migrations 0001–0003 have no diff from checkpoint.
+
+The deterministic Home Battery fixture verifies v1/v2, changed public price, new source, changed recommendations/actions, baseline preservation and current pointer. Fake providers test privacy/permissions, query/result bounds, duplicate discovery, provider failure, inaccessible sources, snippet exclusion, exact evidence, repair success/failure, malicious-source prompt separation and action provenance. HTTP contract tests cover SerpApi status/size/result bounds and safe failures. Prompt-injection tests verify architectural separation, not immunity to all model attacks.
+
+Real Gemma + Temporal + PostgreSQL latest smoke: **gemma4:e4b / Ollama 0.40.6**, **2 evidence records**, **40.8077 s mission / 37.5769 s synthesis**, **one repair**, citations valid, result published, workflow completed. **2 findings, 0 optional claims-array entries, 0 actions**; answer/summary/recommendation also carry evidence. The explicit assessment task was missed by the model. The earlier run also missed actions. Raw synthetic output is research_mission_smoke.json; no action-recall or factual-entailment success is claimed. Real SerpApi smoke **skipped because credentials were absent**; no key request was necessary.
+
+## Limitations and handoff
+
+Heuristic conflicts/change pairing and pattern-based query privacy; lexical AND-token recall; bounded evidence/context; mutable model tags; model action-recall miss; no production Temporal setup or hard-kill/server-crash experiment. Worker replacement was exercised, as were replay and failure/cancellation paths. No UI, TabPFN, Render deployment, Gmail/RSS, Tinker, authentication, exports or OCR. Stage/result history can contain sensitive text in PostgreSQL and remains subject to a future privacy-erasure design.
+
+Next task is **4A — Catch Up ranking with TabPFN and honest cold start**, recommended **GPT-6.1 Sol / Medium**, alternative **Claude Sonnet 5**. Await a new task instruction. Final git state: **16 modified tracked files + 22 untracked files**, all unstaged. Checkpoint **4db9100** remains HEAD. No commit/push/amend. `git diff --check` passes. Tracked/untracked audit: **130 files, 53 local Markdown links**, valid JSON/fences/newlines/whitespace and no actual local-secret matches. No leftover integration-test schemas remain.
+
+## Historical Task 2B handoff
+
+The following earlier reports are historical; the Task 3A section above is current.
+
 # Verified repository status
 
 As of 2026-10-21, Europe/Berlin. **Tasks 1A/1B/2A/2B are complete and validated. Task 3A has not begun.**
