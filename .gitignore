@@ -1,0 +1,26 @@
+# Secrets and personal source material
+.env
+.env.*
+!.env.example
+secrets/
+data/
+uploads/
+exports/
+*.pem
+*.key
+
+# Future local Python tooling and build output
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Editor/OS local state
+.DS_Store
+Thumbs.db
+.idea/
