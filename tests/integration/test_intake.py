@@ -62,7 +62,14 @@ def test_migration_schema_downgrade_and_upgrade(db: Engine) -> None:
         "content_analysis",
         "action_proposal",
         "analysis_evidence",
+        "retrieval_state",
+        "content_chunk",
+        "collection",
+        "collection_membership",
+        "content_embedding",
     }
+    if "embedding_vector" in inspect(db).get_table_names():
+        expected.add("embedding_vector")
     assert set(inspect(db).get_table_names()) == expected
     config = Config("alembic.ini")
     with db.begin() as c:

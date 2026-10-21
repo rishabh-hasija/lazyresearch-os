@@ -1,0 +1,847 @@
+{
+  "corpus_documents": 13,
+  "owner_count": 2,
+  "indexed_chunks": 16,
+  "queries": 12,
+  "k": 5,
+  "chunk_config": {
+    "size": 1000,
+    "overlap": 150,
+    "version": "chars-pages-v1"
+  },
+  "embedding_config": {
+    "provider": "ollama",
+    "model": "qwen3-embedding:latest",
+    "revision": "64b933495768fbd3b87c20583d379728a07471e0c66733a9df87cd1901b3c44b",
+    "dimension": 4096,
+    "normalization": "l2-v1",
+    "version": "retrieval-v1",
+    "query_instruction": "Instruct: Retrieve relevant saved source passages.\nQuery: ",
+    "max_chars": 4000,
+    "batch_size": 4,
+    "timeout": 120.0
+  },
+  "embedding_outcome": {
+    "succeeded": 16,
+    "failed": 0,
+    "unavailable": 0
+  },
+  "index_seconds": 7.60165229998529,
+  "modes": {
+    "lexical": {
+      "recall_at_5": 0.6666666666666666,
+      "mrr": 0.6666666666666666,
+      "mean_source_diversity": 0.75,
+      "mean_seconds": 0.014326833343754211,
+      "results": [
+        {
+          "query": "photovoltaic electricity",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "chunk_ids": [
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 2,
+          "seconds": 0.021868000039830804,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "power from sunshine",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [],
+          "chunk_ids": [],
+          "recall_at_5": 0.0,
+          "reciprocal_rank": 0,
+          "source_diversity": 0,
+          "seconds": 0.008080500061623752,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "overnight stored energy",
+          "expected": [
+            "battery"
+          ],
+          "documents": [],
+          "chunk_ids": [],
+          "recall_at_5": 0.0,
+          "reciprocal_rank": 0,
+          "source_diversity": 0,
+          "seconds": 0.007463600020855665,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "heat pump",
+          "expected": [
+            "heat"
+          ],
+          "documents": [
+            "heat"
+          ],
+          "chunk_ids": [
+            "b1d97a16-1879-5012-b676-84549bf5938c"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.017725100042298436,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "warmer attic in winter",
+          "expected": [
+            "insulation"
+          ],
+          "documents": [],
+          "chunk_ids": [],
+          "recall_at_5": 0.0,
+          "reciprocal_rank": 0,
+          "source_diversity": 0,
+          "seconds": 0.007404800038784742,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "grant applications",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.017330599948763847,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "2026-11-07",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.015377699979580939,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "pet napping by hearth",
+          "expected": [
+            "cat"
+          ],
+          "documents": [],
+          "chunk_ids": [],
+          "recall_at_5": 0.0,
+          "reciprocal_rank": 0,
+          "source_diversity": 0,
+          "seconds": 0.0077544000232592225,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "rail tickets Frankfurt",
+          "expected": [
+            "train"
+          ],
+          "documents": [
+            "train"
+          ],
+          "chunk_ids": [
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.016537299961782992,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "RETRY_429",
+          "expected": [
+            "software"
+          ],
+          "documents": [
+            "software"
+          ],
+          "chunk_ids": [
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.018537400057539344,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "VAT filing",
+          "expected": [
+            "tax"
+          ],
+          "documents": [
+            "tax"
+          ],
+          "chunk_ids": [
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.01845589990261942,
+          "vector_status": "NOT_REQUESTED"
+        },
+        {
+          "query": "online funding form",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 1,
+          "seconds": 0.01538670004811138,
+          "vector_status": "NOT_REQUESTED"
+        }
+      ]
+    },
+    "vector": {
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "mean_source_diversity": 4.75,
+      "mean_seconds": 0.5387584916607011,
+      "results": [
+        {
+          "query": "photovoltaic electricity",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [
+            "solar",
+            "solar_near_duplicate",
+            "battery",
+            "heat",
+            "tax"
+          ],
+          "chunk_ids": [
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.523181900032796,
+          "vector_status": "USED"
+        },
+        {
+          "query": "power from sunshine",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [
+            "solar_near_duplicate",
+            "solar",
+            "battery",
+            "heat",
+            "flowers"
+          ],
+          "chunk_ids": [
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "48ee825e-00a4-551f-8f2d-bf81fd6f4259"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5093119000084698,
+          "vector_status": "USED"
+        },
+        {
+          "query": "overnight stored energy",
+          "expected": [
+            "battery"
+          ],
+          "documents": [
+            "battery",
+            "solar",
+            "insulation",
+            "heat",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5139449000125751,
+          "vector_status": "USED"
+        },
+        {
+          "query": "heat pump",
+          "expected": [
+            "heat"
+          ],
+          "documents": [
+            "heat",
+            "insulation",
+            "battery",
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "chunk_ids": [
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.49232459999620914,
+          "vector_status": "USED"
+        },
+        {
+          "query": "warmer attic in winter",
+          "expected": [
+            "insulation"
+          ],
+          "documents": [
+            "insulation",
+            "heat",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "2d620f96-132e-571a-acfd-350eecf0009b",
+            "a5928586-3002-5f43-bca9-d3f6b71bd6a0"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.4482465999899432,
+          "vector_status": "USED"
+        },
+        {
+          "query": "grant applications",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "tax",
+            "software",
+            "train",
+            "battery"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.4416344999335706,
+          "vector_status": "USED"
+        },
+        {
+          "query": "2026-11-07",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "battery",
+            "train",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.574150100001134,
+          "vector_status": "USED"
+        },
+        {
+          "query": "pet napping by hearth",
+          "expected": [
+            "cat"
+          ],
+          "documents": [
+            "cat",
+            "insulation",
+            "heat",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "93765256-3600-5872-a75c-2af7f925cd40",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.6644885999849066,
+          "vector_status": "USED"
+        },
+        {
+          "query": "rail tickets Frankfurt",
+          "expected": [
+            "train"
+          ],
+          "documents": [
+            "train",
+            "tax",
+            "grant",
+            "software",
+            "battery"
+          ],
+          "chunk_ids": [
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5063264999771491,
+          "vector_status": "USED"
+        },
+        {
+          "query": "RETRY_429",
+          "expected": [
+            "software"
+          ],
+          "documents": [
+            "software",
+            "tax",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.747030800092034,
+          "vector_status": "USED"
+        },
+        {
+          "query": "VAT filing",
+          "expected": [
+            "tax"
+          ],
+          "documents": [
+            "tax",
+            "grant",
+            "train",
+            "long_manual",
+            "software"
+          ],
+          "chunk_ids": [
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.529342999914661,
+          "vector_status": "USED"
+        },
+        {
+          "query": "online funding form",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "tax",
+            "software",
+            "train",
+            "battery"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5151184999849647,
+          "vector_status": "USED"
+        }
+      ]
+    },
+    "hybrid": {
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "mean_source_diversity": 4.75,
+      "mean_seconds": 0.48336634998364997,
+      "results": [
+        {
+          "query": "photovoltaic electricity",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [
+            "solar",
+            "solar_near_duplicate",
+            "battery",
+            "heat",
+            "tax"
+          ],
+          "chunk_ids": [
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.43163580005057156,
+          "vector_status": "USED"
+        },
+        {
+          "query": "power from sunshine",
+          "expected": [
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "documents": [
+            "solar_near_duplicate",
+            "solar",
+            "battery",
+            "heat",
+            "flowers"
+          ],
+          "chunk_ids": [
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "48ee825e-00a4-551f-8f2d-bf81fd6f4259"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.4074988999636844,
+          "vector_status": "USED"
+        },
+        {
+          "query": "overnight stored energy",
+          "expected": [
+            "battery"
+          ],
+          "documents": [
+            "battery",
+            "solar",
+            "insulation",
+            "heat",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.40588560001924634,
+          "vector_status": "USED"
+        },
+        {
+          "query": "heat pump",
+          "expected": [
+            "heat"
+          ],
+          "documents": [
+            "heat",
+            "insulation",
+            "battery",
+            "solar",
+            "solar_near_duplicate"
+          ],
+          "chunk_ids": [
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "50ae0892-3a96-5567-923d-316a593c37cb",
+            "e6664b38-3f59-5303-a21f-c16aa77b5afa"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.39101070002652705,
+          "vector_status": "USED"
+        },
+        {
+          "query": "warmer attic in winter",
+          "expected": [
+            "insulation"
+          ],
+          "documents": [
+            "insulation",
+            "heat",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "2d620f96-132e-571a-acfd-350eecf0009b",
+            "a5928586-3002-5f43-bca9-d3f6b71bd6a0"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.5413820999674499,
+          "vector_status": "USED"
+        },
+        {
+          "query": "grant applications",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "tax",
+            "software",
+            "train",
+            "battery"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5000695999478921,
+          "vector_status": "USED"
+        },
+        {
+          "query": "2026-11-07",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "battery",
+            "train",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.6895151999779046,
+          "vector_status": "USED"
+        },
+        {
+          "query": "pet napping by hearth",
+          "expected": [
+            "cat"
+          ],
+          "documents": [
+            "cat",
+            "insulation",
+            "heat",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "93765256-3600-5872-a75c-2af7f925cd40",
+            "e64b7eaa-66c6-5215-9e6b-3bbbabc80875",
+            "b1d97a16-1879-5012-b676-84549bf5938c",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.5876099999295548,
+          "vector_status": "USED"
+        },
+        {
+          "query": "rail tickets Frankfurt",
+          "expected": [
+            "train"
+          ],
+          "documents": [
+            "train",
+            "tax",
+            "grant",
+            "software",
+            "battery"
+          ],
+          "chunk_ids": [
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.4053079999284819,
+          "vector_status": "USED"
+        },
+        {
+          "query": "RETRY_429",
+          "expected": [
+            "software"
+          ],
+          "documents": [
+            "software",
+            "tax",
+            "battery",
+            "long_manual"
+          ],
+          "chunk_ids": [
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "2d620f96-132e-571a-acfd-350eecf0009b"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 4,
+          "seconds": 0.5568764000199735,
+          "vector_status": "USED"
+        },
+        {
+          "query": "VAT filing",
+          "expected": [
+            "tax"
+          ],
+          "documents": [
+            "tax",
+            "grant",
+            "train",
+            "long_manual",
+            "software"
+          ],
+          "chunk_ids": [
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "a4e0b234-0b0a-5776-a8d5-4b5993e09f78",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.42540760000701994,
+          "vector_status": "USED"
+        },
+        {
+          "query": "online funding form",
+          "expected": [
+            "grant"
+          ],
+          "documents": [
+            "grant",
+            "tax",
+            "software",
+            "train",
+            "battery"
+          ],
+          "chunk_ids": [
+            "d8252ef4-0db5-5040-ab8c-f86a8d61b560",
+            "a061c277-2d9c-564c-bd0a-8f23d15c40a6",
+            "b2a8b63b-1280-53b3-9ac3-3854e2b3c63a",
+            "cc12b0ab-e332-5db7-b3c0-7bdc194df9ab",
+            "b127f871-c1c8-57e6-a27e-12200e40fe7d"
+          ],
+          "recall_at_5": 1.0,
+          "reciprocal_rank": 1.0,
+          "source_diversity": 5,
+          "seconds": 0.4581962999654934,
+          "vector_status": "USED"
+        }
+      ]
+    }
+  },
+  "pgvector_version": "0.8.7"
+}

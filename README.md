@@ -2,9 +2,9 @@
 
 Give it the things you were too lazy to read, organize, or research. LazyResearch OS is designed to find what matters in saved URLs, documents, and pasted text, combine personal evidence with fresh public research, and show what is worth knowing or doing. Saving should be easy; organization is the system's job.
 
-**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** source analysis (Tasks 1A/1B/2A complete).
+**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** personal retrieval (Tasks 1A/1B/2A/2B complete).
 
-The pure domain foundation, persistent intake, and configurable source analysis are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses retain exact extraction citations and action proposals. Expiring PostgreSQL leases support recovery and reject stale workers. Research runtime, retrieval/embeddings/ranking, UI/API, exports, and deployment remain planned.
+The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research runtime, learned ranking, UI/API, exports, and deployment remain planned.
 
 Development uses **Python 3.12**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The approved future UI is Streamlit; the public demo uses synthetic content.
 
@@ -85,4 +85,30 @@ EXTRACT/ANALYZE claims use short transactions, SKIP LOCKED, expiry, and fresh to
 
 Intended technologies: a modular monolith; configurable Gemma processing (initial candidate Gemma 4 E4B); TabPFN relevance prediction; SerpApi public search; Temporal durable missions; Render public hosting; provider-neutral PostgreSQL with optional pgvector. Tinker is an optional later experiment.
 
-Start with [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Data model](docs/DATA_MODEL.md), [Partners](docs/PARTNERS.md), and [Roadmap](docs/ROADMAP.md). [Status](docs/STATUS.md) records verified results; [Next](docs/NEXT.md) defines Task 2B for the next user-authorized instruction. [Agent instructions](AGENTS.md) govern future work.
+Start with [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Data model](docs/DATA_MODEL.md), [Partners](docs/PARTNERS.md), and [Roadmap](docs/ROADMAP.md). [Status](docs/STATUS.md) records verified results; [Next](docs/NEXT.md) defines Task 3A for the next user-authorized instruction. [Agent instructions](AGENTS.md) govern future work.
+
+## Personal retrieval
+
+Migrate explicitly to **0003/head**. `build_retrieval(settings)` returns RetrieveEvidence. After ingestion or a new extractor version, call `retrieval.store.index(owner_id, retrieval.chunks)` to materialize immutable chunks; repeat indexing is idempotent. Then call `retrieval.search(owner_id, query)` for configured defaults, or `retrieve(RetrievalRequest(...))` for collection IDs, lexical/vector flags, limit and per-source cap. Search is read-only; it does not silently run indexing/model work for unindexed sources. No scheduler exists.
+
+Default chunks: 1,000 Unicode characters with 150-character overlap, split at PDF page boundaries. IDs include owner, immutable extraction ID, chunker version/size/overlap and exact offsets. A changed chunker creates new chunks. PostgreSQL validates exact text/page and rejects chunk updates. Whitespace-only separators are not search chunks. Results carry the chunk, content/extraction identity, exact SourceEvidence, title/URL/type and separate lexical/vector ranks/scores plus fused score. Ranking is not factual support or an answer.
+
+Lexical search uses PostgreSQL **simple** tsvector + GIN and bound plainto_tsquery tokens with AND semantics. It preserves case-insensitive exact lexemes without stemming/stopword removal; native punctuation tokenization still applies. No raw SQL or tsquery syntax is accepted. Scope and visibility are enforced in SQL for both search paths and again when resolving fused evidence. Search selects only the newest extraction per ContentItem by extraction created_at then UUID, even if that newest extraction failed; it never quietly falls back to an older parser version. Until successful reindexing, new versions can yield no hits. Old chunks remain available by historical identity. Separate historical source snapshots remain active until explicitly hidden; lineage is not automatically collapsed.
+
+Minimal collections: `create_collection(owner_id, name)` and `add_to_collection(owner_id, collection_id, content_id)` on the retrieval store. Membership is many-to-many with composite owner foreign keys. Multiple requested collections use union semantics. `set_visibility(owner_id, content_id, state)` after indexing accepts ACTIVE, ARCHIVED, DELETION_PENDING or DELETED; all but ACTIVE are excluded. These flags control retrieval, not erasure, authentication or a completed privacy deletion workflow.
+
+Vectors are **off by default** (`VECTOR_SEARCH_ENABLED=false`). Installed and tested model: **qwen3-embedding:latest**, 4.7 GB, 4,096 dimensions. No model is downloaded automatically. Set the embedding settings in `.env.example` through your environment and explicitly enable vectors. `build_embeddings(settings).run(owner_id, limit=20)` generates missing embeddings outside DB transactions with fenced per-chunk leases; `retry=True` explicitly retries failed work. A failed retry stops that bounded invocation. Failed/missing embeddings never remove lexical chunks. Namespace hashes isolate model/revision, dimensions, normalization, query instruction and version; metadata records actual known revision/runtime and latency. No silent model switch occurs.
+
+Migration 0003 attempts to enable pgvector safely. If unavailable or permission is denied, portable chunk/lexical tables still migrate and no native vector side table is created. Startup does not require pgvector. The migration-managed `embedding_vector` side table is deliberately excluded from ORM drift reflection; SQL constraints validate dimensions and link it to embedding metadata. It uses native pgvector, not a serialized substitute. Exact cosine search needs no HNSW/IVFFlat index. If capability becomes available after a lexical-only migration, an explicit later migration/setup step is required; startup does not install schema objects.
+
+This machine's existing vanilla PostgreSQL container received the small `postgresql-17-pgvector` package (**0.8.7**); no DB/server replacement occurred. A new vanilla container will not retain that package. Install an appropriate trusted pgvector package/image explicitly when provisioning vector support; lexical mode remains usable without it. Downgrade removes task tables, retaining the shared extension.
+
+Hybrid fusion uses **RRF k=60** over lexical and vector ranks, deduplicates chunk IDs and caps chunks per source. SQL also applies that cap before candidate limits to avoid long-document starvation. Candidate budget is bounded at 30–200, result limit defaults to 5, source cap to 2. Vector-disabled/unavailable/failed semantic requests report status and use lexical fallback, including when lexical was initially disabled. Hybrid ties vector quality on the small fixture and costs much more than lexical; see [retrieval evaluation](docs/RETRIEVAL_BENCHMARK.md).
+
+Run the separate real-model evaluation with DATABASE_URL configured:
+
+```powershell
+rtk proxy .\.venv\Scripts\python.exe scripts/benchmark_retrieval.py
+```
+
+It creates fresh synthetic scopes/corpus, indexes chunks, performs actual local embedding generation and evaluates lexical/vector/hybrid modes over 12 labeled queries. It never runs as part of pytest, never loads `.env` implicitly, and never starts Research Missions.

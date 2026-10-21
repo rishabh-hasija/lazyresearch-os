@@ -4,13 +4,29 @@ import os
 
 from alembic import context
 
+from lazyresearch.infrastructure.persistence import retrieval_models  # noqa: F401
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.models import Base
+
+
+def include_object(obj, name, type_, reflected, compare_to):  # type: ignore[no-untyped-def]
+    # Optional native storage is explicitly managed by 0003, outside portable ORM metadata.
+    return name != "embedding_vector"
+
+
+def include_name(name, type_, parent_names):  # type: ignore[no-untyped-def]
+    return type_ != "table" or name != "embedding_vector"
+
 
 config = context.config
 connection = config.attributes.get("connection")
 if connection is not None:
-    context.configure(connection=connection, target_metadata=Base.metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=Base.metadata,
+        include_object=include_object,
+        include_name=include_name,
+    )
     with context.begin_transaction():
         context.run_migrations()
 elif context.is_offline_mode():
@@ -25,7 +41,12 @@ elif context.is_offline_mode():
 else:
     engine = database_engine(os.environ["DATABASE_URL"])
     with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=Base.metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=Base.metadata,
+            include_object=include_object,
+            include_name=include_name,
+        )
         with context.begin_transaction():
             context.run_migrations()
     engine.dispose()

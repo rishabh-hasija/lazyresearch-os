@@ -1,6 +1,6 @@
 # Partner responsibilities and replacement plan
 
-Target responsibilities with PostgreSQL and local Ollama/Gemma source analysis implemented. Other integrations remain planned. Partner use must improve the product and be evaluated; category eligibility is not an architectural reason. Provider behavior, licensing, hardware, quotas, and pricing must be checked again when selecting exact packages. Original design references were consulted on 2026-10-20; Task 2A's measured runtime results are in GEMMA_BENCHMARK.md.
+Target responsibilities with PostgreSQL, local Ollama/Gemma source analysis and optional qwen3/pgvector retrieval implemented. Other integrations remain planned. Partner use must improve the product and be evaluated; category eligibility is not an architectural reason. Provider behavior, licensing, hardware, quotas, and pricing must be checked again when selecting exact packages. Original design references were consulted on 2026-10-20; measured runtime results are in GEMMA_BENCHMARK.md and RETRIEVAL_BENCHMARK.md.
 
 ## Gemma via AIProcessor
 
@@ -33,6 +33,8 @@ Responsibility: host web/UI/API and potentially the same-codebase worker, enabli
 [Render service documentation](https://render.com/docs/service-types) separates web and worker execution roles. Deployment plans, persistent processes, and inference resource costs need validation. Replace with another compatible host/container runtime; local development remains possible if Render is removed. DATABASE_URL points to any supported PostgreSQL provider; Render does not own the persistence contract.
 
 ## PostgreSQL and pgvector
+
+Task 2B implements lexical retrieval plus optional exact pgvector cosine search. Local pgvector **0.8.7** and installed **qwen3-embedding:latest** (4.7 GB, 4,096 dimensions) passed actual insert/query and synthetic retrieval evaluation. EmbeddingProvider is independent of generative AIProcessor; VectorStore receives normalized vectors and immutable chunk IDs in an isolated namespace. No automatic model download or substitution. Lexical mode is the default and remains usable on extension/provider failure. Results and limitations, including measured hybrid/vector ties and latency cost, are in [RETRIEVAL_BENCHMARK](RETRIEVAL_BENCHMARK.md).
 
 Responsibility: PostgreSQL is canonical for sources, generated versions, missions, actions, feedback, and job receipts. Transactions protect result publication and idempotency. It receives private content and behavioral data, so use TLS, scoped access, protected credentials, backup policy, and deletion controls. Local PostgreSQL, Neon, Supabase, Railway, or another compatible provider can supply the database without provider SDKs; compatibility must be tested rather than presumed identical.
 

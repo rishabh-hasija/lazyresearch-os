@@ -1,16 +1,24 @@
 """Composition for intake and source analysis; no CLI, UI or startup migration."""
 
+from dataclasses import replace
+
 from sqlalchemy import Engine
 
 from lazyresearch.application.analysis import ProcessPendingContent
 from lazyresearch.application.intake import IntakeService
-from lazyresearch.infrastructure.ai.ollama import configured_ollama
+from lazyresearch.application.retrieval import GenerateMissingEmbeddings, RetrieveEvidence
+from lazyresearch.infrastructure.ai.embeddings import OllamaEmbeddings
+from lazyresearch.infrastructure.ai.ollama import OllamaProcessor, configured_ollama
 from lazyresearch.infrastructure.config import Settings
 from lazyresearch.infrastructure.persistence.analysis import SQLAlchemyAnalysisStore
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.repositories import (
     SQLAlchemyIntakeStore,
     SQLAlchemyProcessingRepository,
+)
+from lazyresearch.infrastructure.persistence.retrieval import (
+    PostgreSQLRetrievalStore,
+    PostgreSQLVectorStore,
 )
 from lazyresearch.infrastructure.sources.extract import SourceTextExtractor
 from lazyresearch.infrastructure.sources.http import HTTPFetcher
@@ -36,3 +44,33 @@ def build_processing(settings: Settings, *, engine: Engine | None = None) -> Pro
     database = engine if engine is not None else database_engine(settings.database_url)
     processor, config = configured_ollama(settings.ai, settings.ai_endpoint)
     return ProcessPendingContent(SQLAlchemyAnalysisStore(database), processor, config)
+
+
+def build_retrieval(settings: Settings, *, engine: Engine | None = None) -> RetrieveEvidence:
+    if settings.embeddings.provider != "ollama":
+        raise ValueError("unsupported EMBEDDING_PROVIDER")
+    database = engine if engine is not None else database_engine(settings.database_url)
+    config = settings.embeddings
+    if settings.vector_search_enabled:
+        revision, _ = OllamaProcessor(settings.embedding_endpoint).metadata(config.model)
+        config = replace(config, revision=revision)
+    return RetrieveEvidence(
+        PostgreSQLRetrievalStore(database),
+        settings.chunks,
+        PostgreSQLVectorStore(database, enabled=settings.vector_search_enabled),
+        OllamaEmbeddings(settings.embedding_endpoint),
+        config,
+        vector_enabled=settings.vector_search_enabled,
+        rrf_k=settings.rrf_k,
+        default_limit=settings.retrieval_limit,
+        default_per_source=settings.retrieval_per_source,
+    )
+
+
+def build_embeddings(
+    settings: Settings, *, engine: Engine | None = None
+) -> GenerateMissingEmbeddings:
+    retrieval = build_retrieval(settings, engine=engine)
+    return GenerateMissingEmbeddings(
+        retrieval.vectors, retrieval.provider, retrieval.embeddings, retrieval.chunks
+    )

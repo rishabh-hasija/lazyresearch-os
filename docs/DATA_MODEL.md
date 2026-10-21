@@ -1,6 +1,18 @@
 # Conceptual data model
 
-Approved conceptual model. Tasks 1B/2A supply PostgreSQL mappings/migrations, intake/extraction leases, per-attempt source-analysis runs, immutable analyses, evidence and action proposals. Research and mutable ActionItem persistence remain planned. IDs use distinct NewType aliases over UUID; instants reject naive values and normalize to UTC. Deadline uncertainty remains explicit.
+Approved conceptual model. Tasks 1B/2A/2B supply PostgreSQL intake/extraction, source-analysis runs/artifacts, immutable retrieval chunks, optional embeddings and scoped retrieval. Research and mutable ActionItem persistence remain planned. IDs use UUIDs with distinct NewType aliases where previously defined; instants reject naive values and normalize to UTC. Deadline uncertainty remains explicit.
+
+## Implemented retrieval storage (Task 2B)
+
+Migration 0003 preserves 0001/0002 and adds content_chunk, retrieval_state, collection, collection_membership and content_embedding; optional embedding_vector uses native public.vector when the extension can be enabled. Extension creation failure leaves lexical schema usable; downgrade retains the shared extension. Optional vector storage is deliberately outside portable ORM metadata/drift reflection, with explicit DDL and integration tests.
+
+ContentChunk binds owner/content/extraction, deterministic ordinal/range/page, exact text/hash and chunker configuration. UUIDv5 identity includes extraction and size/overlap/version. Chunk updates are rejected; source text/page/hash are checked at insertion. Generated simple-dictionary tsvector has a GIN index. No embedding is a citation: retrieval returns immutable chunk-to-extraction SourceEvidence.
+
+retrieval_state adds mutable ACTIVE/ARCHIVED/DELETION_PENDING/DELETED search visibility and an explicit newest-extraction reference without changing immutable ContentItem. Indexing selects newest extraction by created_at/UUID; searches also exclude stale versions before reindexing. A newest failed extraction does not expose an older parser version. Visibility flags do not implement erasure or authentication. Historical ContentItem snapshots remain independently visible unless explicitly hidden.
+
+Collections are minimal owner/name records plus many-to-many membership. Membership composite foreign keys enforce matching owner for both collection and source. Collection filters use union semantics and apply in both SQL search paths. They never replace the request's owner predicate.
+
+ContentEmbedding stores owner/chunk, provider/model/revision-or-unknown, namespace, dimension, normalization, leased status/attempt/error, timing/runtime and creation time. Namespace hashes include model/revision, dimension, normalization, query instruction and embedding version. Different spaces coexist. Metadata and native vector publication are atomic and fenced; failed rows are retryable, successful ones skipped. Derived namespace deletion/rebuild is owner-scoped and cascades to native vectors. Native vector_dims must match metadata via a composite foreign key/check. No approximate index exists. Detailed behavior and benchmark results are in RETRIEVAL_BENCHMARK.md.
 
 ## Implemented intake storage (Task 1B)
 

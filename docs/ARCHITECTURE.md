@@ -1,6 +1,6 @@
 # Architecture
 
-Approved target architecture. Tasks 1A/1B/2A implement domain values/policies, durable intake, configurable source analysis, narrow ports, PostgreSQL adapters/migrations, source fetching/extraction, and composition wiring. Research runtime, retrieval, API, UI, and deployment remain planned. See [status](STATUS.md), [data contracts](DATA_MODEL.md), [partner boundaries](PARTNERS.md), and [decision records](ADRS/0001-modular-monolith.md).
+Approved target architecture. Tasks 1A/1B/2A/2B implement domain values/policies, durable intake, configurable source analysis, scoped lexical/optional vector retrieval, narrow ports, PostgreSQL adapters/migrations and composition wiring. Research runtime, API, UI, and deployment remain planned. See [status](STATUS.md), [data contracts](DATA_MODEL.md), [partner boundaries](PARTNERS.md), and [decision records](ADRS/0001-modular-monolith.md).
 
 ## Style and dependency direction
 
@@ -132,7 +132,13 @@ Use a local PostgreSQL container or local installation for development, with a d
 
 Render hosts web/API and potentially the worker; its [background workers](https://render.com/docs/background-workers) can poll task queues. The database, Temporal service, and inference runtime remain separately configurable infrastructure. Do not assume an always-on worker or GPU fits a free hosting plan. A developer laptop is not reachable from Render localhost; a local outbound Temporal worker is possible for a supervised demo but availability and data routing need explicit approval. Prefer a reachable, secured inference deployment selected after benchmarking. Do not expose a raw local model server publicly.
 
-Task 1B provides DATABASE_URL, intake limits, .env.example, compose.yaml and explicit Alembic configuration. Task 2A implements AI_PROVIDER, AI_MODEL, AI_ENDPOINT, AI_TIMEOUT_SECONDS, AI_MAX_INPUT_CHARS, AI_MAX_CHUNKS and AI_MAX_OUTPUT_TOKENS; prompt/schema/pipeline versions are explicit code configuration. Future configuration: EMBEDDING_MODEL, VECTOR_SEARCH_ENABLED, SERPAPI_API_KEY, TEMPORAL_ADDRESS, TEMPORAL_NAMESPACE, TEMPORAL_TASK_QUEUE. Credentials resolve only in infrastructure/bootstrap; none are committed. Other partner integrations remain planned.
+Task 1B provides DATABASE_URL/intake limits and explicit Alembic configuration. Task 2A implements AI_PROVIDER/MODEL/ENDPOINT and analysis budgets; prompt/schema/pipeline versions are explicit code configuration. Task 2B adds EMBEDDING_PROVIDER/MODEL/DIMENSION/ENDPOINT/TIMEOUT_SECONDS/BATCH_SIZE, CHUNK_SIZE_CHARS/OVERLAP_CHARS, VECTOR_SEARCH_ENABLED, RETRIEVAL_LIMIT/PER_SOURCE_LIMIT and RRF_K. Future configuration: SERPAPI_API_KEY, TEMPORAL_ADDRESS/NAMESPACE/TASK_QUEUE. Credentials resolve only in infrastructure/bootstrap; none are committed.
+
+## Implemented retrieval slice (2B)
+
+Application-owned EmbeddingProvider and VectorStore remain separate from AIProcessor. EvidenceStore handles deterministic chunk indexing, lexical search and authorized evidence resolution. RetrieveEvidence performs query validation, optional embedding, scoped search, transparent RRF and diversification, returning citable candidates without synthesis. GenerateMissingEmbeddings reserves bounded per-chunk work, calls the provider outside transactions and atomically stores validated native vectors plus status. Failed chunks stay lexically searchable; retry/capability state is visible. No Temporal/general queue was introduced.
+
+Chunks cite immutable extraction versions with deterministic UUIDs and exact ranges/pages. Portable PostgreSQL tables support lexical retrieval even when pgvector cannot be enabled. The optional native vector side table is explicitly migration-managed, excluded from ORM drift reflection, and dimension-checked against embedding metadata. Exact cosine queries apply owner/collection/visibility/current-version predicates in SQL; final evidence resolution repeats them. Source caps apply before SQL candidate limits and after fusion. Lexical remains the default. Newest-extraction policy, historical-snapshot visibility, namespace isolation and measured limitations are documented in README and RETRIEVAL_BENCHMARK.
 
 Markdown/JSON exporters later read an authorized immutable result/evidence projection from repositories and render at the delivery edge. They never write canonical content or use local export paths as identity. Redaction/deleted-source state is applied on read. Export schema and result schema versions are separate.
 

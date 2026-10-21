@@ -1,6 +1,57 @@
 # Verified repository status
 
-As of 2026-10-21, Europe/Berlin. **Tasks 1A/1B/2A are complete and validated. Task 2B has not begun.**
+As of 2026-10-21, Europe/Berlin. **Tasks 1A/1B/2A/2B are complete and validated. Task 3A has not begun.**
+
+## Task 2B result and current handoff
+
+Implemented deterministic immutable retrieval chunks, PostgreSQL lexical retrieval, independent EmbeddingProvider/VectorStore, optional native pgvector storage/search, hybrid RRF, collection filters, retrieval visibility/current-extraction policy, bounded embedding generation and labeled evaluation. User reported **GPT-6.1 Sol / Medium**, matching this task's recommendation; alternative **Claude Sonnet 5**. No model switch/subagent, research runtime, TabPFN, SerpApi, Temporal, UI, deployment, connectors, auth, exports or OCR was added.
+
+Checkpoint **3987683** was clean at task start and was not amended. New source modules: domain/chunks.py; application/retrieval_models.py and retrieval.py; ports/retrieval.py; infrastructure/ai/embeddings.py; infrastructure/persistence/retrieval_models.py and retrieval.py. Changed config.py/bootstrap.py/.env.example, migration environment and the existing schema-inventory test. Added migration **0003_citable_chunks_lexical_and_optional_.py**, scripts/benchmark_retrieval.py, tests/test_retrieval.py, tests/integration/test_retrieval.py, RETRIEVAL_BENCHMARK.md, embedding_smoke.json and retrieval_benchmark_results.json. README/STATUS/NEXT and factual architecture/data/partner/roadmap passages updated. No new Python dependency was needed. Prior migrations **0001/0002 are unchanged**.
+
+Chunk design: UUIDv5 identity includes owner, immutable extraction, chunker version/size/overlap and offsets. Defaults 1,000 Unicode characters / 150 overlap. PDF pages are separate ranges; whitespace-only separators are omitted. Chunks preserve exact text/hash/page and reject updates; PostgreSQL verifies citation text/page on insert. Changing chunker configuration preserves earlier chunks. Explicit store.index materializes current chunks idempotently after ingestion/extraction; retrieval is read-only and does not hide model/index work inside search.
+
+Lexical strategy: native **simple** dictionary tsvector generated from chunk text, GIN index, bound plainto_tsquery AND-token matching, ts_rank_cd proximity ranking and UUID tie ordering. No embedding dependency, raw tsquery, separate search service or stemming. Both SQL candidate paths enforce owner, active visibility, current extraction/chunker and optional many-to-many collection membership before limiting results. Newest extraction is selected by created_at then UUID, including failed extractions; a newer unindexed/failed extraction never quietly exposes an old parser version. Archived/deletion-pending/deleted states are excluded. Flags are retrieval visibility, not erasure/authentication; historical ContentItem snapshots remain separate until explicitly hidden.
+
+EmbeddingProvider accepts bounded text/config and returns validated vectors with provider/model/actual known revision, dimension, normalization, timing/runtime and observed input norms. It remains separate from AIProcessor. Selected local **Ollama 0.40.6 / qwen3-embedding:latest**, already installed **4,676,805,193 bytes**, Q4_K_M, **4,096 dimensions**, actual digest `64b933495768fbd3b87c20583d379728a07471e0c66733a9df87cd1901b3c44b`. No model download or silent substitution. Adapter sends truncate=false, bounds inputs/batches/timeouts, checks finite dimension/space and normalizes L2 explicitly. Namespace hashes include model/revision, dimension, normalization, query instruction and embedding version; different spaces coexist.
+
+VectorStore persists owner/chunk/namespace metadata and fenced per-chunk status/attempt/error/runtime/latency, plus an optional native pgvector side table with dimension checks/FK. Inference is outside transactions; vector/status commit together. Failed work remains retryable; missing/failed embeddings do not alter lexical chunks. Successful rows are skipped, stale leases rejected, and namespace deletion/rebuild is owner-scoped. Workflow limits work per invocation; a failed explicit retry stops that invocation. Crashes can repeat computation. No general-purpose queue or Temporal.
+
+pgvector was initially absent. A **274 KB** postgresql-17-pgvector package installed **0.8.7** in the existing isolated PostgreSQL **17.11** container, without server/database replacement. Migration 0003 creates five portable retrieval tables and optionally enables the public extension/native embedding_vector side table. Missing extension/permission support leaves lexical schema usable. A disabled-capability migration path is tested. The shared extension is retained on downgrade; native optional storage is explicitly excluded from ORM drift reflection. No HNSW/IVFFlat index. Container package changes are ephemeral and need reprovisioning on a fresh vanilla container.
+
+RetrieveEvidence supports lexical/vector/hybrid modes, reports vector status, and uses lexical fallback for disabled/unavailable/failed semantic paths. Exact cosine search is namespace-isolated. RRF k=60 combines ranks without score calibration; chunk IDs deduplicate, SQL applies per-source caps before candidate limits, final fusion caps again. Default limit 5/source cap 2; candidate budgets 30–200. Re-resolution repeats scope/visibility predicates and the application rejects foreign-owner candidates even from an invalid adapter. Results preserve immutable source/extraction/chunk locators and component/fused scores. No answer synthesis or claim-entailment promise.
+
+## Task 2B actual measurements and validation
+
+Actual local embedding smoke: first single request **28.6491 s**, warm three-text batch **0.7176 s**, all 4,096 dimensions; observed norms **0.999999726–1.000000490**. Model-attributed memory was not measured. Actual pgvector insert/query of these spaces succeeded. Full evaluation: **13 owned documents / 16 chunks / 12 labeled queries**, plus another owner's matching distractor; **16 embeddings succeeded**, zero failures, indexing **7.6017 s**.
+
+| Retrieval mode | Recall@5 | MRR | Mean source diversity | Mean query seconds |
+|---|---:|---:|---:|---:|
+| Lexical | 0.667 | 0.667 | 0.750 | 0.0143 |
+| Vector | 1.000 | 1.000 | 4.750 | 0.5388 |
+| Hybrid | 1.000 | 1.000 | 4.750 | 0.4834 |
+
+Hybrid tied vector on this small authored fixture; no general superiority or latency comparison between semantic modes is claimed. Greater diversity includes distractors. Lexical remains default because it is model-independent and much faster; vectors are opt-in. See [RETRIEVAL_BENCHMARK](RETRIEVAL_BENCHMARK.md) and its raw JSON for exact corpus/labels, metrics and limits. Actual Ollama evaluation is separate from mandatory pytest.
+
+| Task 2B check actually run | Result |
+|---|---|
+| python -m pytest -v | **347 passed in 60.87s**, exit 0; all 307 prior tests pass |
+| python -m pytest tests/integration -v | **71 passed in 55.11s**, real PostgreSQL, exit 0 |
+| python -m ruff check . | **All checks passed**, exit 0 |
+| python -m ruff format --check . | **93 files already formatted**, exit 0 |
+| python -m mypy src | **No issues in 42 source files**, exit 0 |
+| Actual embedding/vector evaluation | **16 persisted embeddings**, all vector/hybrid queries executed |
+
+Tests cover deterministic overlap/Unicode offsets/PDF pages/new chunk versions, exact lexical tokens, owner/collection isolation on both paths, inactive/deleted exclusions, newest extraction selection, bounds/source caps and long-source starvation, namespace/dimension isolation, missing/failed embedding fallback, explicit retry/stale lease fencing, RRF union/overlap/dedup/stable ordering/foreign-adapter defense, native nearest-neighbor search and unavailable-vector migrations. Domain/application import guards still pass.
+
+Alembic against explicitly isolated lazyresearch_migration_check: **0002 -> head -> 0002 -> head**, successful; drift reports **No new upgrade operations detected**. Isolated dev DB upgraded to 0003 for actual evaluation. Fresh upgrades and disabled-capability downgrade/re-upgrade ran in isolated test schemas. No unrelated DB was downgraded. The native side-table reflection warning found during initial drift inspection was removed with pre-reflection exclusion; final check has no warning.
+
+Limitations: small synthetic corpus, no held-out generalization, no semantic threshold/reranker/ANN, no multilingual/load benchmark, explicit reindexing required, native simple-token AND limitations and phrase splits across chunks. Current source snapshots are not lineage-collapsed; retrieval visibility does not implement privacy deletion. Extension denial/missing-package handling exists; fallback integration uses an explicit disabled-capability path rather than changing global extension permissions. Unknown runtime revisions remain unknown; mutable model tags still limit reproducibility. Optional native schema assumes the vector extension is in public and needs an explicit migration/setup step if capability arrives after a lexical-only upgrade. Lexical fallback remains available.
+
+Final git state: checkpoint **3987683** remains HEAD; **12 modified tracked files and 14 untracked files**, all unstaged. No staging, commit, push or amend. `git diff --check` passed; separate tracked/untracked audit checked **108 files**, **48 local Markdown links**, JSON, whitespace/newlines/fences and accidental inclusion of the actual local DB password: **no errors**. Database inspection found **0 leftover test schemas**. `pip check` found no broken requirements. Ruff/format/mypy were rerun after documentation updates and passed with the counts above. Only next task: **3A — end-to-end Research Mission engine**, recommended **GPT-6 Astra / Medium**, alternative **Claude Opus 5**. Do not start it automatically.
+
+## Historical Task 2A handoff
+
+The following report and older sections are historical; the Task 2B report above is current.
 
 ## Task 2A result
 

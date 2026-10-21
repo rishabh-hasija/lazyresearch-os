@@ -1,6 +1,6 @@
 # Five-day implementation roadmap
 
-The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A are implemented and verified; 2B is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records what actually exists. Further slices require a subsequent task instruction.
+The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B are implemented and verified; 3A is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records what actually exists. Further slices require a subsequent task instruction.
 
 ## Model policy
 
@@ -37,7 +37,7 @@ Use the user's project names consistently: architecture/ambiguous design = **GPT
 - Validation: synthetic known-deadline/contradiction fixtures; malformed output, timeout, cancellation, prompt-injection fixture; real-model smoke with latency/memory recorded separately from deterministic tests.
 - Models: GPT-6.1 Sol / Medium; Claude Sonnet 5. Adapter implementation follows known contracts; hardware ambiguity may require a bounded GPT-6 Astra Medium / Claude Opus 5 design review before changes.
 
-### 2B: Lexical and optional vector retrieval
+### 2B: Lexical and optional vector retrieval (completed)
 
 - Objective: retrieve authorized evidence with stable source locators and a working lexical fallback.
 - Expected modules: application/retrieval/, ports/vector_store.py, ports/embedding_provider.py, infrastructure/vector/, chunk/extraction persistence, retrieval fixtures.
