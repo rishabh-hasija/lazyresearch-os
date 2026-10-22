@@ -20,6 +20,7 @@ from lazyresearch.infrastructure.ai.embeddings import OllamaEmbeddings
 from lazyresearch.infrastructure.ai.ollama import OllamaProcessor, configured_ollama
 from lazyresearch.infrastructure.ai.synthesis import OllamaResearchSynthesizer
 from lazyresearch.infrastructure.config import Settings
+from lazyresearch.infrastructure.health import ServiceHealth, check_all
 from lazyresearch.infrastructure.persistence.analysis import SQLAlchemyAnalysisStore
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.missions import PostgreSQLMissionStore
@@ -163,3 +164,11 @@ def build_research(settings: Settings, *, engine: Engine | None = None) -> Resea
             settings.ai_endpoint, settings.ai.model, settings.ai.timeout_seconds
         ),
     )
+
+
+def system_health(env: Mapping[str, str] | None = None) -> tuple[ServiceHealth, ...]:
+    """Probe database, Temporal and the model host; never raises."""
+    try:
+        return check_all(Settings.from_env(os.environ if env is None else env))
+    except Exception:
+        return (ServiceHealth("configuration", False, "Configuration is invalid"),)

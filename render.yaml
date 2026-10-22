@@ -1,0 +1,22 @@
+# Render Blueprint: public synthetic demo web service only.
+# PostgreSQL is external (any provider; supply DATABASE_URL). The Temporal worker and the
+# model host are supervised outside Render (see docs/DEPLOYMENT.md). Secrets use sync: false.
+services:
+  - type: web
+    name: lazyresearch-os-demo
+    runtime: docker
+    plan: free
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: APP_ENV
+        value: demo
+      - key: DATABASE_URL
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: TEMPORAL_ADDRESS
+        sync: false
+      - key: TEMPORAL_NAMESPACE
+        value: default
+      - key: AI_ENDPOINT
+        sync: false

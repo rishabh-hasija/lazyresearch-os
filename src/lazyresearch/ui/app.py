@@ -1,6 +1,7 @@
 """Run with streamlit run; bootstrap is the only infrastructure composition entry."""
 
 import json
+import os
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -9,7 +10,7 @@ import streamlit as st
 from lazyresearch.application.mission_models import MissionEvidence
 from lazyresearch.application.relevance_models import Relevance
 from lazyresearch.application.workspace import Workspace
-from lazyresearch.bootstrap import build_workspace
+from lazyresearch.bootstrap import build_workspace, system_health
 from lazyresearch.domain.actions import ActionStatus, Deadline
 from lazyresearch.ui.presenters import (
     GROUPS,
@@ -484,7 +485,17 @@ def main() -> None:
     st.set_page_config(page_title="LazyResearch OS", page_icon="📚", layout="centered")
     st.title("LazyResearch OS")
     st.caption("Save the reading. Find what matters. Keep the evidence.")
-    st.sidebar.caption("Local synthetic/demo workspace · no authentication")
+    if os.environ.get("APP_ENV") == "demo":
+        st.warning(
+            "Public demo: synthetic data only, one shared workspace, no authentication. "
+            "Do not enter personal or private content. Research and analysis need the "
+            "separately supervised worker and model host, which may be offline."
+        )
+    st.sidebar.caption("Synthetic/demo workspace · no authentication")
+    with st.sidebar.expander("System status"):
+        if st.button("Check services"):
+            for item in system_health():
+                st.write(f"{'✅' if item.ok else '⚠️'} {item.name}: {item.detail}")
     section = st.sidebar.radio("Workspace", ["Add Sources", "Catch Up", "Research", "Actions"])
     try:
         if "workspace" not in st.session_state:

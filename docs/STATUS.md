@@ -1,3 +1,36 @@
+# Task 5A — Deployment preparation (public deployment NOT performed)
+
+**2026-10-22, Europe/Berlin**, from clean HEAD **bb5b48d**. Active model Claude Sonnet 5.5; recommended
+Claude Sonnet 5 (reasonable equivalent). No subagent, commit or push.
+
+**Outcome:** deployment artifacts and docs are done and locally verified. **No Render service, public URL, hosted
+database, hosted Temporal, real SerpApi call, hosted recovery test, hosted performance run or screenshot exists.**
+Those need the owner's accounts/credentials and a pushed branch (Render builds from Git); account creation and secret
+entry were not attempted. See [DEPLOYMENT](DEPLOYMENT.md) for the topology decision and research.
+
+Added: Dockerfile/.dockerignore, render.yaml, MIT LICENSE (+pyproject metadata), scripts/serve.py, scripts/health.py,
+scripts/load_demo_data.py, infrastructure/health.py, application/demo_data.py, `system_health` in bootstrap, UI demo
+banner and System-status panel, `APP_ENV` in .env.example, tests/test_deployment.py, docs/DEPLOYMENT.md, README section.
+Migrations unchanged (head 0006). Domain/application import boundaries intact.
+
+| Check | Result |
+|---|---|
+| Full pytest (TEMPORAL_TEST_ADDRESS set) | **447 passed, 8 failed** in 472 s: all 8 were PDF-extraction `EXTRACTION_TIMEOUT` while Docker Desktop was starting (machine loaded) |
+| Rerun of the 3 affected files | **46 passed** (all 8 pass). Combined: 455 tests pass; no single clean 455 run |
+| Ruff check / format | passed after auto-fix of import order and one reformat; final rerun below |
+| mypy src | 72 files, no issues |
+| Alembic | base→head, 0006→0005→0006 on isolated DB: ok |
+| docker build / container health | ok, non-root |
+| serve.py health | ok (~4 s) |
+| Demo loader x2 | 5 sources, idempotent |
+| History/tracked-file secret scan | DB password: 0 hits in tracked files and full history; no SerpApi key in .env |
+| Dependency audit | `pip check` only; no vulnerability scanner run |
+
+Known limits: Temporal Cloud TLS/API-key worker connection and authenticated remote Ollama are not implemented; the
+web UI's Temporal probe will report unavailable on Render unless Temporal is reachable; free Render web cold-starts
+~1 min; Render free has no workers; free Neon quotas unverified; paid Render sizes/prices unretrieved.
+Cost estimate: Render free web + Neon free + local worker ≈ 0 EUR recurring, unverified; no hosted run happened.
+
 # Task 4B — Minimal readable Streamlit application
 
 Implemented and verified on **2026-10-22, Europe/Berlin**, from clean checkpoint **9b4a68d**
