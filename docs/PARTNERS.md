@@ -1,5 +1,11 @@
 # Partner responsibilities and replacement plan
 
+Task 4A now implements optional local TabPFN v2 through RankingModel, with explicit
+baseline fallback, frozen observations and a real generic synthetic evaluation.
+Built with PriorLabs-TabPFN. Exact package/checkpoint/license attribution, runtime measurements
+and limitations are in [RANKING_BENCHMARK](RANKING_BENCHMARK.md). This updates the earlier
+planned-ranking passages below; hosting and general personal-quality claims remain unverified.
+
 Target responsibilities with PostgreSQL, local Ollama/Gemma source analysis and optional qwen3/pgvector retrieval implemented. Task 3A adds Gemma research synthesis, a tested local Temporal runtime and a SerpApi adapter (live search smoke skipped without credentials). Ranking and hosting integrations remain planned. Partner use must improve the product and be evaluated; category eligibility is not an architectural reason. Provider behavior, licensing, hardware, quotas, and pricing must be checked again when selecting exact packages. Original design references were consulted on 2026-10-20; measured runtime results are in GEMMA_BENCHMARK.md and RETRIEVAL_BENCHMARK.md.
 
 ## Gemma via AIProcessor
@@ -12,7 +18,7 @@ Task 2A selects **gemma4:e4b** through Ollama 0.40.6 after an approved 6.58 GB d
 
 Responsibility: predict READ/KEEP/ACT/IGNORE probabilities from versioned tabular features and labeled context, improving relevance ordering as usable feedback accumulates. Receives features, labels, and model configuration; not whole documents by default. Behavioral counts can still be sensitive. Prefer a feasible local adapter; remote inference requires explicit data-routing review.
 
-[Prior Labs documentation](https://docs.priorlabs.ai/overview) describes tabular prediction through in-context learning and API/scikit-learn-style interfaces. That is not a guarantee of personalization or accuracy on this task. DATA_MODEL.md defines cold start, labels, leakage controls, and evaluation. If removed or ineligible, the transparent baseline still provides Catch Up grouping and deadline visibility. Exact package/model/license selection is deferred.
+[Prior Labs documentation](https://docs.priorlabs.ai/overview) describes tabular prediction through in-context learning and API/scikit-learn-style interfaces. That is not a guarantee of personalization or accuracy on this task. DATA_MODEL.md defines cold start, labels, leakage controls, and evaluation. If removed or ineligible, the transparent baseline still provides Catch Up grouping and deadline visibility. Task 4A selects local TabPFN 2.2.1 with the public v2 classifier; exact checkpoint, attribution and measurements are in RANKING_BENCHMARK.md.
 
 ## SerpApi via SearchProvider
 

@@ -1,0 +1,1381 @@
+{
+  "mode": "GENERIC_DEMO",
+  "personalization_claim": false,
+  "feature_version": "catch-up-v1",
+  "label_policy": "explicit-feedback-v1",
+  "fixture": "120 authored synthetic feature rows; four simple scenario families; no user labels",
+  "split": "70/30 chronological by feature cutoff; purge shared source/raw groups and late labels",
+  "train_count": 84,
+  "test_count": 36,
+  "train_events": [
+    "71880194-3126-506f-8fad-e18bf6647ab0",
+    "d15c8c0a-d49f-5635-a697-7d9de6b2670a",
+    "938127d7-bdf6-5f77-94d6-0dab20a4a4f1",
+    "6148b7a2-31eb-5d9e-b216-77a8a7b87e5d",
+    "67eaecfa-b33c-5676-b53e-7d26e6c1ec05",
+    "6b303e4c-9e48-542d-8213-011161ddc6ca",
+    "0b3d0d1d-511b-564b-ae1b-e87f968a6820",
+    "9567c279-cdb2-58da-b265-b0eab7f6ef2a",
+    "ae370797-d818-5e71-a4f7-b854a8b8905d",
+    "1876a5af-25fb-5bf3-bd16-e4630b0bc9e6",
+    "44446473-722c-55b2-9094-43c55f071b41",
+    "9698fe0d-8f4b-512f-9d30-aa736f3c5433",
+    "625cdb9c-8022-5841-883e-05aecba9966f",
+    "5ec3e49d-9220-5991-9756-73be5c53d751",
+    "adbb0898-dcf2-5dde-a3d6-b4d252d3cfb8",
+    "dc448095-8825-5d31-8d43-8b9a896fadac",
+    "02f44daa-6735-5480-8768-3c4b225e8ecd",
+    "2984eb18-baf6-52c6-97e9-34593e350810",
+    "cec33890-fe3b-5ce3-bec3-f26f5895fc3a",
+    "c2741d48-76c9-54f0-beb1-48e43465c8b5",
+    "e5ae5ae6-c892-5d90-8c5f-546f9611c40b",
+    "900fcc7e-73e6-5e97-b7b9-2170e7fd5b07",
+    "7f8c2afe-378f-5d02-be73-ed031faa8424",
+    "9f6be554-74d9-561c-b42d-c9ccf01fb466",
+    "832ec469-b56e-5c17-962c-481476747c9c",
+    "f6b69e42-18d7-5b13-b5cf-f7f54d9fe1e1",
+    "e6f50dfd-05dc-5b91-9b38-ee820b11f40e",
+    "6dd4a977-d1bb-5edb-93be-16f84aee482c",
+    "347effd8-68dc-5cb9-a8da-883d68bcfdad",
+    "3103a011-8fe2-5e62-b3f9-067f16288842",
+    "7fdeab50-6158-51d2-8fb6-5acaf78b23f7",
+    "875eb29e-4fa6-5771-89c5-62ea2b0e7616",
+    "78c7eb5f-07bd-5630-9cfd-1f89d2c48428",
+    "ce6d8f96-a34b-52e1-be3c-644c4d190c7a",
+    "b300604a-84f9-53f4-9eb6-b78cfd38db9d",
+    "ab36372a-496b-5c6c-9454-f679ccd810e4",
+    "667c9f1c-1820-566d-9b75-b9e41c4f09a6",
+    "572697ff-792d-55f7-b2d9-4442b3b653d1",
+    "16d9d53d-57bd-5269-95bb-0c2076c2b423",
+    "690e09a1-7aef-52d7-8bee-60199ea4ee25",
+    "1d833ff0-4e64-5b43-bd3c-e0753798473c",
+    "e068e640-0b6a-5090-a202-a2628be55325",
+    "2539987b-fa3e-51e3-8552-488784f17a60",
+    "74594205-f285-5ef2-8ad1-9a40e4730a14",
+    "dd430a79-0aa1-5c4c-998c-b4a363d031eb",
+    "5f3604f6-5607-5116-8963-5c5821850737",
+    "59e961a3-2b43-5fb7-9a0f-b2f852c05460",
+    "ec6a0cdf-feb2-5264-a57c-3417a38be780",
+    "1835b586-7ea6-5595-9f4d-268d0d1da5d7",
+    "cbb92bd6-212d-5c87-a26c-e08a621af8ec",
+    "a62d23c1-3ba3-5bf2-bdce-752759785271",
+    "24528f78-6ab7-523d-aba3-f58a0a071091",
+    "f14f5056-c240-547f-8d1a-07dbae7ce741",
+    "37c61c28-7da2-58c9-8585-35717585dd3e",
+    "593334e4-c37b-50f0-9f1b-a1d85281a88b",
+    "ab479d09-3d71-52d7-ad1c-58ede67df94f",
+    "a3c7dcce-a4cf-5ab6-9e87-d64b84275ae7",
+    "3340ea8a-0f9c-5bb5-bd1b-8413cb1e3a37",
+    "459ac535-bca6-538e-95cd-a195990c24d1",
+    "d79b10d1-14b8-5e10-a579-15cca2dedf73",
+    "6def4549-7f2f-5f7e-8471-d2b04cec1e43",
+    "025af25e-1d8b-5bd3-89db-54de2c28feed",
+    "7d85cfe1-8348-5d3d-892d-9351a6a9aaff",
+    "009852f5-4e00-50b6-8e4f-600ff1be1a70",
+    "02931fc4-ecd0-551b-91b2-155149650eed",
+    "e50beaaf-4d39-53bf-9d3e-f85a85e62b59",
+    "1b79ed08-67fd-5afc-b6df-0794c0694c66",
+    "41c7b085-e07c-5daa-baf0-7b34cc0b7969",
+    "4191acde-2634-539a-858c-9cdbca12b778",
+    "a57d47e9-980a-5ed5-b695-0f2d17c0a449",
+    "de2443f2-7cef-59ea-afcb-e9a96157c55f",
+    "1ec9c44e-9271-58c5-8268-59cb34f41307",
+    "f47bc9c8-5b75-5080-985f-a3ea742846f7",
+    "73563ce3-0f6b-571b-8da3-c102405445d5",
+    "258d0b7c-e2b0-59c3-845b-1b3f8f5d4c96",
+    "d856731b-e9d3-5e11-a0a9-fa26000eb4c5",
+    "7ec65874-a661-55c8-8a96-30f732be46df",
+    "2a4a7864-2dee-5c0c-bb5f-26965de76dd8",
+    "503c578d-59e8-51b5-b8d0-f926978ae78e",
+    "eae42879-adde-504d-a90c-ef6a232ddb04",
+    "281b3226-2152-5edb-abd3-0885ea8ed933",
+    "72c4ae48-fd96-5852-b537-8e38249c0664",
+    "a2a97acf-2ef1-555a-977b-cda42d089827",
+    "064f947c-999d-5bc6-8f33-ae416464ca41"
+  ],
+  "test_events": [
+    "c803301d-f5c9-562a-992c-a27407c927c7",
+    "69eef5f3-f2ff-5c97-a4b8-22153480e833",
+    "7c5fb1c6-4ad2-5a17-93ab-db85597899eb",
+    "4beb42fd-7cc7-5c55-9d4b-9b90573a1871",
+    "908568e3-3108-52f0-975d-7cbfad745388",
+    "72748469-d176-5df2-9c5e-9e24a6ae752d",
+    "b4facfef-4c23-597b-aa1e-1adcf40f83df",
+    "558678fd-b19b-584a-9f30-d16c62ba873b",
+    "6167a02d-750f-56e2-8dc8-4cca93d7824b",
+    "59834584-1235-5f45-b2c8-65623bd0fb0f",
+    "aa8e58eb-3580-5339-94c9-84b411de8fcd",
+    "e93e6a98-dbea-5b85-a15e-81ffb4d625e5",
+    "424744e4-e0c6-5816-aa83-131a5632de7c",
+    "2e9acd57-4849-5454-ac40-7b32dfdd28e0",
+    "1aaead53-7171-58b8-bd66-eeb9af7b232d",
+    "cd35a7f7-cf6d-5808-9493-f120aa1c02f8",
+    "190f660d-b9fc-5099-8d96-da26dfa832c4",
+    "b6a74af4-af88-590f-8c18-047cd1837cd1",
+    "3805762e-66c2-55ce-a344-fc29a5f33359",
+    "bc6d341e-f9c6-53e9-989d-a8436129b9b2",
+    "46035337-3a7b-5958-97a0-8b1b277fc610",
+    "eea5fc8c-3d59-592d-851c-762e6c3e51d4",
+    "df89c1c1-0959-591e-b476-553eb42e1b2b",
+    "9e18c9b4-6a0e-5663-8934-80256ba535f5",
+    "d01fe82a-93ad-5dd7-87fa-7b9802d8b556",
+    "48e74c29-21be-5615-a0fc-8bd98f3759cc",
+    "c0783dc1-b7d5-538a-977f-d8495f674221",
+    "5f1cfd64-98d1-5b33-808c-4eb4c10871a7",
+    "500307fa-deed-531d-89cb-b0a828e81ec4",
+    "a832cc5d-8d9a-5a76-acb5-29b40e99ae4c",
+    "e04531fc-29a1-5fec-8e08-ff95de9469c2",
+    "efbcefe4-8686-5aff-b1be-d8a2461a78b9",
+    "d2632a18-416b-5341-a3b3-fce0374b4e9e",
+    "3aae0e17-0f43-50ff-8984-8119bfaffeea",
+    "295aba90-0237-551f-81a7-e958a92e8063",
+    "8b719d6f-0996-58dd-8b54-d14ecd4f6401"
+  ],
+  "model": "tabpfn-2.2.1:sha256:cf8c519c01eaf1613ee91239006d57b1c806ff5f23ac1aeb1315ba1015210e49:cpu:estimators-2:seed-42:v1:torch-2.14.1+cpu:scikit-learn-1.6.1:numpy-2.5.4",
+  "packages": {
+    "tabpfn": "2.2.1",
+    "torch": "2.14.1+cpu",
+    "scikit-learn": "1.6.1",
+    "numpy": "2.5.4"
+  },
+  "baseline": {
+    "macro_f1": 0.5444711538461539,
+    "recall": [
+      0.0,
+      1.0,
+      1.0,
+      0.4444444444444444
+    ],
+    "top5_usefulness": 1.0,
+    "counts": [
+      9,
+      9,
+      9,
+      9
+    ]
+  },
+  "tabpfn": {
+    "macro_f1": 1.0,
+    "recall": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "top5_usefulness": 1.0,
+    "counts": [
+      9,
+      9,
+      9,
+      9
+    ]
+  },
+  "class_order": [
+    "READ",
+    "KEEP",
+    "ACT",
+    "IGNORE"
+  ],
+  "seconds": {
+    "baseline": 0.0001542000100016594,
+    "tabpfn_cold": 11.329563300008886,
+    "tabpfn_repeated_refit": 0.9641631999984384
+  },
+  "repeat_identical": true,
+  "engineering_improvement_gate": true,
+  "rows": [
+    {
+      "observation": "78f9c8ba-9ef2-5145-9c5e-baec6a8b58d4",
+      "cutoff": "2025-03-26T00:00:00+00:00",
+      "groups": [
+        "fixture-group-84"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 136.0,
+        "length": 6000,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999867081642151,
+        4.586626801028615e-06,
+        5.3070089052198455e-06,
+        3.392824964976171e-06
+      ]
+    },
+    {
+      "observation": "46e58410-a086-57a4-81a2-8bb45b4ead35",
+      "cutoff": "2025-03-27T00:00:00+00:00",
+      "groups": [
+        "fixture-group-85"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 120.0,
+        "length": 18000,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        8.65340462041786e-06,
+        0.9999836087226868,
+        4.8260098992614076e-06,
+        2.948327619378688e-06
+      ]
+    },
+    {
+      "observation": "6d46a5f9-5e87-54e3-b3fe-7877e214392e",
+      "cutoff": "2025-03-28T00:00:00+00:00",
+      "groups": [
+        "fixture-group-86"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 121.0,
+        "length": 1200,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": true,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        4.6713448682567105e-06,
+        2.5545276116645255e-07,
+        0.9999845623970032,
+        1.053058986144606e-05
+      ]
+    },
+    {
+      "observation": "950d34a0-34fa-5208-8da4-d5f677cefc08",
+      "cutoff": "2025-03-29T00:00:00+00:00",
+      "groups": [
+        "fixture-group-87"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 122.0,
+        "length": 100,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        1.647659155423753e-05,
+        4.27214581577573e-06,
+        2.563993984949775e-05,
+        0.9999536275863647
+      ]
+    },
+    {
+      "observation": "30cc7f98-9410-555a-acc2-ea2174b9354d",
+      "cutoff": "2025-03-30T00:00:00+00:00",
+      "groups": [
+        "fixture-group-88"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 123.0,
+        "length": 6013,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999958872795105,
+        1.5802046391399927e-06,
+        1.3591250080935424e-06,
+        1.1892288966919295e-06
+      ]
+    },
+    {
+      "observation": "8734499b-e214-50f9-9c90-45712cd96a15",
+      "cutoff": "2025-03-31T00:00:00+00:00",
+      "groups": [
+        "fixture-group-89"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 124.0,
+        "length": 18013,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        8.081294254225213e-06,
+        0.9999840259552002,
+        4.7727394303365145e-06,
+        3.086149263253901e-06
+      ]
+    },
+    {
+      "observation": "c36bb8c1-8ec2-51c5-8182-4a094139d2d9",
+      "cutoff": "2025-04-01T00:00:00+00:00",
+      "groups": [
+        "fixture-group-90"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 125.0,
+        "length": 1213,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        1.8278137758898083e-06,
+        3.1225148688918125e-08,
+        0.9999932646751404,
+        4.925417670165189e-06
+      ]
+    },
+    {
+      "observation": "0ae28ed0-f0e0-5f97-8b48-79602c3b0691",
+      "cutoff": "2025-04-02T00:00:00+00:00",
+      "groups": [
+        "fixture-group-91"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 126.0,
+        "length": 113,
+        "duplicate_count": 1,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.1,
+        0.2,
+        0.05,
+        0.65
+      ],
+      "tabpfn": [
+        2.761374162218999e-06,
+        2.117128815370961e-06,
+        7.860639016143978e-06,
+        0.9999872446060181
+      ]
+    },
+    {
+      "observation": "622e5897-3219-5708-b517-6e8dfb482f44",
+      "cutoff": "2025-04-03T00:00:00+00:00",
+      "groups": [
+        "fixture-group-92"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 127.0,
+        "length": 6026,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999935030937195,
+        2.3694544779573334e-06,
+        2.209262220276287e-06,
+        1.932619625222287e-06
+      ]
+    },
+    {
+      "observation": "16b3ad2e-3d52-579b-bb81-9ee4977ba5fc",
+      "cutoff": "2025-04-04T00:00:00+00:00",
+      "groups": [
+        "fixture-group-93"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 128.0,
+        "length": 18026,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        5.8113382692681625e-06,
+        0.9999884963035583,
+        3.69610415873467e-06,
+        2.0045631572429556e-06
+      ]
+    },
+    {
+      "observation": "b2b25110-10ed-5315-86e0-4321f8f522f5",
+      "cutoff": "2025-04-05T00:00:00+00:00",
+      "groups": [
+        "fixture-group-94"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 129.0,
+        "length": 1226,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        6.377796921697154e-07,
+        4.228505900982782e-08,
+        0.9999964237213135,
+        2.9364218789851293e-06
+      ]
+    },
+    {
+      "observation": "c73c192a-f7e9-5e8b-ab3a-ebae4d684f49",
+      "cutoff": "2025-04-06T00:00:00+00:00",
+      "groups": [
+        "fixture-group-95"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 130.0,
+        "length": 126,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        3.180391558998963e-06,
+        8.838812846079236e-07,
+        1.1332626854709815e-05,
+        0.999984622001648
+      ]
+    },
+    {
+      "observation": "891f56a4-32ab-544b-8f9f-50e16037300f",
+      "cutoff": "2025-04-07T00:00:00+00:00",
+      "groups": [
+        "fixture-group-96"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 131.0,
+        "length": 6039,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999845623970032,
+        7.539131274825195e-06,
+        4.028688181278994e-06,
+        3.851041128655197e-06
+      ]
+    },
+    {
+      "observation": "315b2d7c-8d49-5d3b-996e-5f577f2ca16c",
+      "cutoff": "2025-04-08T00:00:00+00:00",
+      "groups": [
+        "fixture-group-97"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 132.0,
+        "length": 18039,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        6.02526415605098e-06,
+        0.9999881386756897,
+        3.62477294402197e-06,
+        2.2072572392062284e-06
+      ]
+    },
+    {
+      "observation": "6f79fbc3-5410-55bb-9dba-620e14efdc63",
+      "cutoff": "2025-04-09T00:00:00+00:00",
+      "groups": [
+        "fixture-group-98"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 133.0,
+        "length": 1239,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": true,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        1.411354674019094e-06,
+        1.799155313619849e-07,
+        0.9999937415122986,
+        4.660020749724936e-06
+      ]
+    },
+    {
+      "observation": "d8b2819b-4fc2-597f-8fdf-e42904c7304e",
+      "cutoff": "2025-04-10T00:00:00+00:00",
+      "groups": [
+        "fixture-group-99"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 134.0,
+        "length": 139,
+        "duplicate_count": 1,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.1,
+        0.2,
+        0.05,
+        0.65
+      ],
+      "tabpfn": [
+        3.3551798424014123e-06,
+        1.2691193660430145e-06,
+        1.0902655048994347e-05,
+        0.9999845027923584
+      ]
+    },
+    {
+      "observation": "06f341a3-86ee-549f-a46d-d01f6d1e97e1",
+      "cutoff": "2025-04-11T00:00:00+00:00",
+      "groups": [
+        "fixture-group-100"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 135.0,
+        "length": 6052,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999948143959045,
+        1.9239373614254873e-06,
+        1.8528230611991603e-06,
+        1.4586887573386775e-06
+      ]
+    },
+    {
+      "observation": "a66aa36a-d434-534f-9591-eabd98b4cb60",
+      "cutoff": "2025-04-12T00:00:00+00:00",
+      "groups": [
+        "fixture-group-101"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 136.0,
+        "length": 18052,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        1.1194740181963425e-05,
+        0.9999772310256958,
+        6.934319117135601e-06,
+        4.6595250751124695e-06
+      ]
+    },
+    {
+      "observation": "a1368bc9-3447-5de4-859b-3654e853a7ee",
+      "cutoff": "2025-04-13T00:00:00+00:00",
+      "groups": [
+        "fixture-group-102"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 120.0,
+        "length": 1252,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        2.6708469249570044e-06,
+        4.159365474265542e-08,
+        0.9999914169311523,
+        5.810075890622102e-06
+      ]
+    },
+    {
+      "observation": "60d43fbf-d10e-53c8-8623-cdd8644689e6",
+      "cutoff": "2025-04-14T00:00:00+00:00",
+      "groups": [
+        "fixture-group-103"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 121.0,
+        "length": 152,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        1.4047042895981576e-05,
+        2.5700151127239224e-06,
+        2.2508018446387723e-05,
+        0.9999608993530273
+      ]
+    },
+    {
+      "observation": "e812f7a0-77c1-560b-a196-ea4c28b3c29f",
+      "cutoff": "2025-04-15T00:00:00+00:00",
+      "groups": [
+        "fixture-group-104"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 122.0,
+        "length": 6065,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.999988317489624,
+        4.645457011065446e-06,
+        3.4452984891686356e-06,
+        3.579513304430293e-06
+      ]
+    },
+    {
+      "observation": "5a5fe1b4-d40c-50eb-9659-bbf180435d5a",
+      "cutoff": "2025-04-16T00:00:00+00:00",
+      "groups": [
+        "fixture-group-105"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 123.0,
+        "length": 18065,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        9.788474926608615e-06,
+        0.9999787211418152,
+        7.3491323746566195e-06,
+        4.216699380776845e-06
+      ]
+    },
+    {
+      "observation": "a3755c66-52d0-5557-9cdb-e1c6c89465c5",
+      "cutoff": "2025-04-17T00:00:00+00:00",
+      "groups": [
+        "fixture-group-106"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 124.0,
+        "length": 1265,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        1.2204166068841005e-06,
+        5.999799412848006e-08,
+        0.9999951720237732,
+        3.5720499909075443e-06
+      ]
+    },
+    {
+      "observation": "85137702-b865-5941-93bb-9f74ce320f3a",
+      "cutoff": "2025-04-18T00:00:00+00:00",
+      "groups": [
+        "fixture-group-107"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 125.0,
+        "length": 165,
+        "duplicate_count": 1,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.1,
+        0.2,
+        0.05,
+        0.65
+      ],
+      "tabpfn": [
+        5.9252979554003105e-06,
+        3.251517682656413e-06,
+        1.5020001228549518e-05,
+        0.9999758005142212
+      ]
+    },
+    {
+      "observation": "80c17734-ca0d-54d1-a8ad-3dfa2ae1dbfc",
+      "cutoff": "2025-04-19T00:00:00+00:00",
+      "groups": [
+        "fixture-group-108"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 126.0,
+        "length": 6078,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999702572822571,
+        1.4624320101574995e-05,
+        7.508627732022433e-06,
+        7.667470526939724e-06
+      ]
+    },
+    {
+      "observation": "0964a1c9-9ec1-5591-bd35-00a7d1155b7d",
+      "cutoff": "2025-04-20T00:00:00+00:00",
+      "groups": [
+        "fixture-group-109"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 127.0,
+        "length": 18078,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        8.760435775911901e-06,
+        0.9999811053276062,
+        6.106587989052059e-06,
+        4.070205704920227e-06
+      ]
+    },
+    {
+      "observation": "76fa2b21-3c7d-539e-b421-6db86d8a6850",
+      "cutoff": "2025-04-21T00:00:00+00:00",
+      "groups": [
+        "fixture-group-110"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 128.0,
+        "length": 1278,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": true,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        2.10539883482852e-06,
+        3.5798896647065703e-07,
+        0.9999917149543762,
+        5.869288088433677e-06
+      ]
+    },
+    {
+      "observation": "01e7485f-dcbe-5ff2-a9fc-3cd572b0edf2",
+      "cutoff": "2025-04-22T00:00:00+00:00",
+      "groups": [
+        "fixture-group-111"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 129.0,
+        "length": 178,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        1.2428924492269289e-05,
+        3.054381295441999e-06,
+        3.65391606464982e-05,
+        0.9999479651451111
+      ]
+    },
+    {
+      "observation": "8d1a2984-ccde-58f0-b00f-b8e49a0b6756",
+      "cutoff": "2025-04-23T00:00:00+00:00",
+      "groups": [
+        "fixture-group-112"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 130.0,
+        "length": 6000,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999959468841553,
+        1.43390229823126e-06,
+        1.5013214351711213e-06,
+        1.1415804692660458e-06
+      ]
+    },
+    {
+      "observation": "edc5cac8-95a4-5bea-ad88-19eb0da1dedb",
+      "cutoff": "2025-04-24T00:00:00+00:00",
+      "groups": [
+        "fixture-group-113"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 131.0,
+        "length": 18000,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        8.010108103917446e-06,
+        0.9999847412109375,
+        4.539468136499636e-06,
+        2.7464720915304497e-06
+      ]
+    },
+    {
+      "observation": "5545f181-ba0c-5de5-8bd1-5fabe5b3d087",
+      "cutoff": "2025-04-25T00:00:00+00:00",
+      "groups": [
+        "fixture-group-114"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 132.0,
+        "length": 1200,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        1.7606281517146272e-06,
+        4.644846995915941e-08,
+        0.999994158744812,
+        4.0541053749620914e-06
+      ]
+    },
+    {
+      "observation": "2b179e0d-c88e-5f35-9057-097045ce0572",
+      "cutoff": "2025-04-26T00:00:00+00:00",
+      "groups": [
+        "fixture-group-115"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 133.0,
+        "length": 100,
+        "duplicate_count": 1,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.1,
+        0.2,
+        0.05,
+        0.65
+      ],
+      "tabpfn": [
+        4.234514562995173e-06,
+        2.744556240941165e-06,
+        8.836421329760924e-06,
+        0.9999842047691345
+      ]
+    },
+    {
+      "observation": "9be63d29-93d2-5cad-8922-7b1638b1497a",
+      "cutoff": "2025-04-27T00:00:00+00:00",
+      "groups": [
+        "fixture-group-116"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 134.0,
+        "length": 6013,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "READ",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        0.9999923706054688,
+        2.605769850561046e-06,
+        2.746641484918655e-06,
+        2.25551752919273e-06
+      ]
+    },
+    {
+      "observation": "e92f6096-9d4c-5aee-b61a-1d345f083943",
+      "cutoff": "2025-04-28T00:00:00+00:00",
+      "groups": [
+        "fixture-group-117"
+      ],
+      "features": {
+        "source_type": 0,
+        "age_hours": 135.0,
+        "length": 18013,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 0,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "KEEP",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        6.098400262999348e-06,
+        0.9999879598617554,
+        3.902253411069978e-06,
+        2.0790077996934997e-06
+      ]
+    },
+    {
+      "observation": "ef99335e-bcda-5f8b-8ca1-f2ee0973530e",
+      "cutoff": "2025-04-29T00:00:00+00:00",
+      "groups": [
+        "fixture-group-118"
+      ],
+      "features": {
+        "source_type": 1,
+        "age_hours": 136.0,
+        "length": 1213,
+        "duplicate_count": 0,
+        "has_action": true,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 1,
+        "times_resurfaced": 0,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "ACT",
+      "baseline": [
+        0.1,
+        0.1,
+        0.75,
+        0.05
+      ],
+      "tabpfn": [
+        1.8913062831416028e-06,
+        2.299946260109209e-07,
+        0.9999915957450867,
+        6.253138053580187e-06
+      ]
+    },
+    {
+      "observation": "f975504b-aa0a-53ca-8754-2cfc58a5756c",
+      "cutoff": "2025-04-30T00:00:00+00:00",
+      "groups": [
+        "fixture-group-119"
+      ],
+      "features": {
+        "source_type": 2,
+        "age_hours": 120.0,
+        "length": 113,
+        "duplicate_count": 0,
+        "has_action": false,
+        "has_deadline": false,
+        "interest_overlap": null,
+        "opened_before": 2,
+        "times_resurfaced": 1,
+        "analysis_missing": false,
+        "schema": "catch-up-v1"
+      },
+      "label": "IGNORE",
+      "baseline": [
+        0.2,
+        0.6,
+        0.05,
+        0.15
+      ],
+      "tabpfn": [
+        1.9327271729707718e-05,
+        3.628916374509572e-06,
+        2.718922041822225e-05,
+        0.9999498724937439
+      ]
+    }
+  ],
+  "limits": [
+    "Synthetic separable scenarios, not an unbiased relevance benchmark",
+    "No confidence interval, real-user generalization or calibration claim",
+    "CPU memory/peak RSS not measured; two fits only; no production latency claim"
+  ]
+}

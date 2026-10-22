@@ -1,6 +1,6 @@
 # Five-day implementation roadmap
 
-The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B/3A are implemented and verified; 4A is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records what actually exists. Further slices require a subsequent task instruction.
+The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B/3A/4A are implemented; 4B is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records exact validation. Further slices require a subsequent task instruction.
 
 ## Model policy
 
@@ -59,7 +59,7 @@ Use the user's project names consistently: architecture/ambiguous design = **GPT
 
 ## Day 4 — Catch Up, feedback, and application experience
 
-### 4A: Ranking with honest cold start
+### 4A: Ranking with honest cold start (implemented)
 
 - Objective: expose baseline ranking and a real, evaluated TabPFN predictor using versioned features and explicit labels.
 - Expected modules: application/relevance/, infrastructure/ranking/, interaction persistence, evaluation fixtures/report.

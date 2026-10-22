@@ -8,6 +8,8 @@ from lazyresearch.application.analysis import ProcessPendingContent
 from lazyresearch.application.intake import IntakeService
 from lazyresearch.application.mission_models import MissionScope
 from lazyresearch.application.missions import ResearchOperations
+from lazyresearch.application.relevance import CatchUp
+from lazyresearch.application.relevance_models import RankingUnavailable
 from lazyresearch.application.retrieval import GenerateMissingEmbeddings, RetrieveEvidence
 from lazyresearch.infrastructure.ai.embeddings import OllamaEmbeddings
 from lazyresearch.infrastructure.ai.ollama import OllamaProcessor, configured_ollama
@@ -16,6 +18,7 @@ from lazyresearch.infrastructure.config import Settings
 from lazyresearch.infrastructure.persistence.analysis import SQLAlchemyAnalysisStore
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.missions import PostgreSQLMissionStore
+from lazyresearch.infrastructure.persistence.ranking import PostgreSQLRankingStore
 from lazyresearch.infrastructure.persistence.repositories import (
     SQLAlchemyIntakeStore,
     SQLAlchemyProcessingRepository,
@@ -24,9 +27,24 @@ from lazyresearch.infrastructure.persistence.retrieval import (
     PostgreSQLRetrievalStore,
     PostgreSQLVectorStore,
 )
+from lazyresearch.infrastructure.ranking import TabPFNRankingModel
 from lazyresearch.infrastructure.search import SerpApiSearch
 from lazyresearch.infrastructure.sources.extract import SourceTextExtractor
 from lazyresearch.infrastructure.sources.http import HTTPFetcher
+
+
+def build_catch_up(
+    settings: Settings,
+    *,
+    engine: Engine | None = None,
+    tabpfn_path: str | None = None,
+) -> CatchUp:
+    database = engine if engine is not None else database_engine(settings.database_url)
+    store = PostgreSQLRankingStore(database)
+    try:
+        return CatchUp(store, TabPFNRankingModel(tabpfn_path) if tabpfn_path else None)
+    except RankingUnavailable:
+        return CatchUp(store, unavailable=True)
 
 
 def build_intake(settings: Settings, *, engine: Engine | None = None) -> IntakeService:

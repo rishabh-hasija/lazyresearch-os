@@ -2,9 +2,9 @@
 
 Give it the things you were too lazy to read, organize, or research. LazyResearch OS is designed to find what matters in saved URLs, documents, and pasted text, combine personal evidence with fresh public research, and show what is worth knowing or doing. Saving should be easy; organization is the system's job.
 
-**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** durable Research Missions (Tasks 1A/1B/2A/2B/3A complete).
+**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** Catch Up ranking and explicit feedback (Tasks 1A/1B/2A/2B/3A/4A implemented; UI is next).
 
-The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions now combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Learned ranking, UI/API, exports and deployment remain planned.
+The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Catch Up now supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. UI/API, exports and deployment remain planned.
 
 Development uses **Python 3.12**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The approved future UI is Streamlit; the public demo uses synthetic content.
 
@@ -134,4 +134,27 @@ Mission scope defaults: max 3 public queries (currently one deterministic questi
 
 Claims remain UNREVIEWED: exact citation validation is not factual entailment. Conflict detection and changed-claim pairing are heuristic. One bounded synthesis repair is permitted. The small real Gemma smoke passed citation validation but missed an explicit source task, so action extraction still needs human review. Historical snapshots remain immutable, and missing evidence never proves a claim false.
 
-For optional local runtime tests, set TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 before pytest; without it, only the three live Temporal tests skip. Ordinary deterministic mission tests use fake search/synthesis and real PostgreSQL. `scripts/smoke_research.py` separately runs real Gemma + Temporal + PostgreSQL on synthetic sources and one bounded SerpApi search/fetch only if a key is configured. It does not load `.env` implicitly. [STATUS](docs/STATUS.md) records actual validation; [NEXT](docs/NEXT.md) describes Task 4A, which requires a new instruction.
+For optional local runtime tests, set TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 before pytest; without it, only the three live Temporal tests skip. Ordinary deterministic mission tests use fake search/synthesis and real PostgreSQL. `scripts/smoke_research.py` separately runs real Gemma + Temporal + PostgreSQL on synthetic sources and one bounded SerpApi search/fetch only if a key is configured. It does not load `.env` implicitly. [STATUS](docs/STATUS.md) records actual validation; [NEXT](docs/NEXT.md) describes Task 4B, which requires a new instruction.
+
+## Catch Up ranking and feedback (Task 4A)
+
+After explicit Alembic upgrade to head (0005), `build_catch_up(settings)` returns a baseline-first
+application service. Call `.rank(owner_id, aware_utc_cutoff, interests=("Home Energy",), limit=50)`.
+It returns immutable decisions for unreviewed active items with READ/KEEP/ACT/IGNORE scores,
+displayed class, reasons, pending-analysis/deadline flags, BASELINE/PERSONAL mode and observation ID.
+Use `content_id=...` for a reviewed item with its explicit class override. Predictions never archive
+or delete content. Potential deadlines remain visible under any user override.
+
+`PostgreSQLRankingStore.interact(owner, content, event_id, kind, occurred_at, explicit=..., ...)`
+records append-only interactions. Reliable feedback uses `InteractionKind.FEEDBACK_LABELED`,
+`explicit=True`, `observation_id` and a `Relevance` label. A correction supplies `supersedes` with
+the current label event ID. Reuse the entire event, including timestamp, for an idempotent retry.
+Archive/open/mission-selection events alone are never training targets. Event recording itself
+does not perform an archive or external action.
+
+Optional local TabPFN needs the `ranking` extra and an explicitly provisioned checkpoint path
+passed as `build_catch_up(settings, tabpfn_path=...)`. Model absence/failure, sparse classes and
+failed held-out improvement all preserve the labeled baseline. No generic/demo labels enter
+production history. [RANKING_BENCHMARK](docs/RANKING_BENCHMARK.md) contains exact setup, feature
+encoding, chronological/grouped evaluation, raw results, measured latency and known limitations.
+No ranking UI, automatic schedules or remote predictor was added.

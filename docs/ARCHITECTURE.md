@@ -1,5 +1,11 @@
 # Architecture
 
+Task 4A adds application-owned RankingModel/RankingStore contracts, CatchUp, immutable feature
+observations/explicit-feedback persistence and optional local TabPFN behind bootstrap.
+Cold start and failed/unevaluated prediction use a visible rules baseline. Exact behavior,
+feature subset, source-group/time leakage rules and evaluation limits are in
+[RANKING_BENCHMARK](RANKING_BENCHMARK.md). UI/API/deployment remain planned.
+
 Approved target architecture. Tasks 1A/1B/2A/2B implement domain values/policies, durable intake, configurable source analysis, scoped lexical/optional vector retrieval, narrow ports, PostgreSQL adapters/migrations and composition wiring. Task 3A adds durable research runtime and immutable publication. API, UI and deployment remain planned. See [status](STATUS.md), [data contracts](DATA_MODEL.md), [partner boundaries](PARTNERS.md), and [decision records](ADRS/0001-modular-monolith.md).
 
 ## Style and dependency direction

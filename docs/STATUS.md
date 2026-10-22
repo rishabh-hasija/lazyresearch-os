@@ -1,3 +1,111 @@
+# Task 4A — Catch Up ranking with honest cold start
+
+Implemented and verified on **2026-10-22, Europe/Berlin**, starting from clean checkpoint
+**0a54517** (committed Task 3A). Recommended **GPT-6.1 Sol / Medium**, alternative
+**Claude Sonnet 5**. Exact active identity was not reliably available and was not guessed.
+No subagents, staging, commit, push or amend. This section supersedes historical state below.
+
+## Changes and behavior
+
+Added application/relevance_models.py, relevance.py, relevance_evaluation.py; ports/ranking.py;
+infrastructure/ranking.py; persistence/ranking_models.py and ranking.py; migration **0005**;
+scripts/benchmark_ranking.py; synthetic fixture/unit/PostgreSQL tests; RANKING_BENCHMARK.md and
+raw ranking_benchmark_results.json. Updated bootstrap, migration imports, optional dependency
+metadata, schema inventory and product/architecture/data/partner/roadmap/README/handoff docs.
+Migrations **0001–0004 are unchanged**. No existing ingestion/analysis/retrieval/mission implementation
+was refactored. Domain remains standard-library-only; TabPFN/Torch stay in infrastructure.
+
+CatchUp selects owner-scoped unreviewed active sources and freezes versioned features from
+existing extraction/analysis/captures/interactions at an aware cutoff. Missing analysis is
+explicitly pending; no fresh model analysis happens during feature reads. Decisions retain
+four-class probabilities, class/reasons, deadline visibility, model/mode/configuration/context
+identity, exact source/extraction/analysis references and held-out metrics when attempted.
+Current source visibility is rechecked before observation writes. Ranking never archives,
+deletes, modifies source evidence/results or executes an action.
+
+The deterministic rules baseline is visibly BASELINE. Only explicit FEEDBACK_LABELED supplies
+READ/KEEP/ACT/IGNORE targets. Opens, ignores, archives, acted-on events, exposures and system
+mission selections remain context, not inferred labels. Append-only event IDs support exact
+retries; corrections explicitly supersede the current label and fence concurrent siblings.
+Reviewed-source reads preserve the user's explicit override. Potential deadlines remain
+visible and sort first even under IGNORE; absent an override they safeguard displayed ACT.
+
+Personal mode requires enough explicit owner history (40 training labels, five/class), a
+chronological held-out set (20 labels, two/class), macro-F1 improvement with no ACT-recall or
+top-5 utility regression, and valid model output. Labels must have been available before the
+test cutoff. Source/raw-hash groups, including transitive aliases, are purged across splits
+and candidate context. Training uses stored features, not hindsight recomputation. Generic
+synthetic examples are confined to tests/the benchmark and never bootstrapped as personal
+history. Disabled/unavailable/invalid/unevaluated models retain the declared baseline.
+
+Two PostgreSQL tables persist immutable observations and append-only interactions with scoped
+foreign keys and guards. Feedback occurrence follows feature cutoff; DB receipt ordering is
+checked using the DB clock for both records, avoiding an immediate-feedback app/DB clock
+comparison bug found and fixed during verification. Labels before cutoff remain rejected.
+Ordinary observation/event updates/deletes fail. Full privacy erasure remains unimplemented.
+
+## Actual validation
+
+All Python commands ran through `rtk proxy .venv/Scripts/python.exe`.
+
+| Check actually run | Final result |
+|---|---|
+| Full pytest via Python wrapper setting TEMPORAL_TEST_ADDRESS=127.0.0.1:7233, then pytest.main(['-q']) | **433 passed in 119.73 s**, exit 0, no skips |
+| Integration coverage in that full suite | **102 integration cases**, including real PostgreSQL and all **3 live Temporal** cases |
+| Ranking-only unit/PostgreSQL suite before the clock regression case | **35 passed in 11.59 s** |
+| Final ranking PostgreSQL suite, including clock regression | **15 passed in 11.68 s** |
+| Ruff check | All checks passed, exit 0 |
+| Ruff format --check | **127 files already formatted**, exit 0 |
+| Strict mypy src | **61 source files**, no issues, exit 0 |
+| pip check after editable metadata refresh | No broken requirements, exit 0 |
+| Real local TabPFN benchmark (separate from pytest) | **84 train / 36 held out**, real four-class probabilities; repeated predictions identical |
+| Migration checks | Fresh/base/all-revision test migrations; **0005 → 0004 → 0005** and Alembic drift in disposable PostgreSQL test schema, all passed |
+| Isolated local development DB | Verified exact localhost lazyresearch_dev target, upgraded to **0005**; drift: **No new upgrade operations detected** |
+
+The initial full suite passed 430 tests before final regressions were added. An intermediate
+expanded run found a missing import in a new test and the immediate-feedback clock comparison
+bug. Both were corrected; the final 433-test run above is clean. No unresolved test failure.
+Ranking tests cover finite/exact probabilities/class mapping, missing checkpoint/classes,
+small history, failed/equal held-out evaluation, future/foreign/self-group context exclusion,
+transitive grouping, explicit overrides/deadlines, immutable cutoffs and artifact rows,
+concurrent/stale correction fencing, exact retries, inactive/deleted sources and migration drift.
+All **397 pre-4A tests** remain passing.
+
+## Real predictor measurements and limitations
+
+Installed optional **TabPFN 2.2.1**, **Torch 2.14.1+cpu**, **scikit-learn 1.6.1**, **NumPy 2.5.4**.
+Built with PriorLabs-TabPFN. Public v2 classifier checkpoint: **29,009,539 bytes**, official
+revision/hash/license attribution in [RANKING_BENCHMARK](RANKING_BENCHMARK.md). It is stored
+under ignored .local-tools/ranking. CPU only, two estimators, seed 42, four threads; telemetry
+disabled and no runtime checkpoint download. No remote data routing or credentials.
+
+On 120 authored generic synthetic feature rows (30/class), held-out balance was nine/class.
+Rules macro-F1 **0.54447**, TabPFN **1.00000**; ACT recall **1.0** for both; top-5 usefulness
+**1.0** for both. The deliberately separable scenario fixture establishes actual integration,
+not unbiased quality, personalization or calibration. Final cold import/fit/prediction
+**11.3296 s**, repeated refit **0.9642 s**; initial run **28.5178 / 0.9058 s**. No memory or
+latency-percentile measurement, confidence interval or real-user generalization claim.
+
+The implemented feature set is deliberately narrower than the conceptual design: no authority
+estimate, semantic topic/mission similarity or author/domain engagement aggregation. History
+queries currently load before the 1,000-example inference cap. Personal evaluation/refits occur
+per explicit rank request and need later performance work if measured UI usage justifies it.
+No UI/API, action-status persistence, hosting, auth, erasure, connectors, exports or schedules
+were added. Existing research/retrieval limitations and unvalidated real SerpApi access remain.
+DevRelay community research and challenge/event discovery were attempted but returned an
+MLH sign-in-service error; no article, consensus or current-event claim is fabricated.
+
+Next task is **4B — minimal readable application experience**, bounded in [NEXT](NEXT.md).
+Do not start it automatically. Recommended **GPT-6.1 Sol / Medium**, alternative **Claude Sonnet 5**.
+Final working tree: **12 modified tracked + 14 untracked files**, all unstaged; HEAD stays
+**0a54517**. No commit/push/amend. `git diff --check` passes. A tracked/untracked audit
+checked **144 files / 60 local Markdown links**, JSON, fences, newlines, whitespace and actual
+local-secret matches: **no errors**. No staged files. Prior-migration diff check also exited 0.
+
+## Historical Task 3A handoff
+
+All records below are historical, including their old next-task and working-tree counts.
+
 # Task 3A — durable Research Missions
 
 Implemented on checkpoint **4db9100** (Add hybrid retrieval and pgvector support). User confirmed the required model was selected; exact active identity was not independently available and was not guessed. Recommended **GPT-6 Astra / Medium**, alternative **Claude Opus 5**. No subagents, commit, push, amend or staging.

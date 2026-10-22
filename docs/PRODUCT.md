@@ -1,5 +1,9 @@
 # Product design
 
+Task 4A supplies backend Catch Up ranking/feedback with an honest rules baseline and optional
+evaluated local TabPFN. No Catch Up UI exists yet. The synthetic benchmark is generic/demo,
+not evidence of personal quality; see RANKING_BENCHMARK.md and STATUS.md.
+
 Status: product design with backend intake and source analysis implemented in Tasks 1B/2A; UI and research experiences remain planned. See STATUS.md for verified scope. Design baseline: 2026-10-20, Europe/Berlin.
 
 ## Promise and audience

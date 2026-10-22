@@ -1,5 +1,21 @@
 # Conceptual data model
 
+## Implemented Catch Up storage (Task 4A)
+
+Migration 0005 adds immutable ranking_observation and append-only user_interaction. Relational
+owner/content/extraction/analysis references protect snapshot provenance. Observations retain
+catch-up-v1 features, cutoff, missingness, grouping keys, exact four-class scores, displayed
+class, baseline/personal mode, reasons/deadline flag, model/context identity and evaluation.
+Explicit feedback references an observation; corrections name the current superseded event.
+Guards reject stale corrections and labels preceding their observations. Event retries are
+idempotent by event ID; only FEEDBACK_LABELED trains ranking. Reads and final observation writes
+deny inactive candidates; deleted/deletion-pending training history is excluded. Numeric features
+are not a privacy-erasure implementation. Source task state remains a separate future slice.
+
+The implemented feature subset, baseline, chronological/source-group purge and personal
+eligibility gates are precisely described in [RANKING_BENCHMARK](RANKING_BENCHMARK.md).
+The later conceptual feature table remains design guidance, not a claim that every feature exists.
+
 Approved conceptual model. Tasks 1B/2A/2B supply PostgreSQL intake/extraction, source-analysis runs/artifacts, immutable retrieval chunks, optional embeddings and scoped retrieval. Task 3A adds research topics/missions/evidence/results/proposals; mutable ActionItem persistence remains planned. IDs use UUIDs with distinct NewType aliases where previously defined; instants reject naive values and normalize to UTC. Deadline uncertainty remains explicit.
 
 ## Implemented retrieval storage (Task 2B)
