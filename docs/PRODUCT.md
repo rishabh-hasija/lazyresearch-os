@@ -1,5 +1,9 @@
 # Product design
 
+Task 4B implements a local Streamlit MVP with Add Sources, Catch Up, Research and Actions, explicit
+processing, feedback and provenance-preserving action review. UI capabilities and actual browser
+verification are recorded in UI_WALKTHROUGH.md and STATUS.md; hosting remains planned.
+
 Task 4A supplies backend Catch Up ranking/feedback with an honest rules baseline and optional
 evaluated local TabPFN. No Catch Up UI exists yet. The synthetic benchmark is generic/demo,
 not evidence of personal quality; see RANKING_BENCHMARK.md and STATUS.md.

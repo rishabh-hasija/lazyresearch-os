@@ -2,11 +2,11 @@
 
 Give it the things you were too lazy to read, organize, or research. LazyResearch OS is designed to find what matters in saved URLs, documents, and pasted text, combine personal evidence with fresh public research, and show what is worth knowing or doing. Saving should be easy; organization is the system's job.
 
-**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** Catch Up ranking and explicit feedback (Tasks 1A/1B/2A/2B/3A/4A implemented; UI is next).
+**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** local Streamlit MVP (Tasks 1A/1B/2A/2B/3A/4A/4B implemented; hosted verification is next).
 
-The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Catch Up now supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. UI/API, exports and deployment remain planned.
+The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Catch Up supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. The local Streamlit application exposes intake, Catch Up, research history/evidence and action review. Exports and deployment remain planned.
 
-Development uses **Python 3.12**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The approved future UI is Streamlit; the public demo uses synthetic content.
+Development uses **Python 3.12**, Streamlit **1.66.1**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The local demo uses synthetic content.
 
 From PowerShell in the repository:
 
@@ -20,7 +20,78 @@ rtk proxy .\.venv\Scripts\python.exe -m ruff format --check .
 rtk proxy .\.venv\Scripts\python.exe -m mypy src
 ```
 
-The RTK prefix follows this workspace's agent instructions. This slice exposes library use cases, not an application entry point.
+The RTK prefix follows this workspace's agent instructions. The local application entry point is described below.
+
+## Run the local application (Task 4B)
+
+Prerequisites: Python 3.12, configured PostgreSQL 17 (tested 17.11), and explicit migrations.
+Install development/UI dependencies in the existing environment:
+
+```powershell
+rtk proxy .venv/Scripts/python.exe -m pip install -e '.[dev,ui]'
+```
+
+Copy `.env.example` to ignored `.env` and configure its existing settings. To export an explicit
+local env file into the current PowerShell process without printing its values:
+
+```powershell
+foreach ($taskSetting in Get-Content -LiteralPath .env) {
+    if ($taskSetting.Trim() -and -not $taskSetting.TrimStart().StartsWith('#') -and $taskSetting.Contains('=')) {
+        $taskName, $taskValue = $taskSetting.Split('=', 2)
+        [Environment]::SetEnvironmentVariable($taskName.Trim(), $taskValue.Trim(), 'Process')
+    }
+}
+rtk proxy .venv/Scripts/python.exe -m alembic upgrade head
+rtk proxy .venv/Scripts/python.exe scripts/run_ui.py --env-file .env
+```
+
+The launcher binds **127.0.0.1:8501**, disables Streamlit usage telemetry, and loads `.env` only
+because `--env-file` was explicitly passed. Environment values already present take precedence.
+Without that flag, only exported environment settings are used. Startup never migrates or starts
+model/research services. Open [the local app](http://127.0.0.1:8501). This is not a verified
+one-command machine setup. Restart the app after code/configuration changes for a clean build;
+cached Python/service objects can survive a development hot reload or browser refresh.
+
+The four sections are Add Sources, Catch Up, Research and Actions. **Load sample sources** is an
+optional, explicit, idempotent intake of two synthetic battery texts. It creates no fake analyses,
+feedback or research results. The default fixed owner is a shared synthetic/demo workspace;
+`UI_OWNER_ID` may select a separately scoped UUID. There is no authentication or private multi-user
+security claim. Keep all inputs synthetic/demo until a separate access/retention task is approved.
+
+Saving/extracting and reading prior content do not require Ollama. **Analyze next source** explicitly
+runs one pending analysis in the UI request. Ollama must be running with the configured **gemma4:e4b**
+(or another explicitly configured supported model). No model is downloaded or substituted. The
+optional **qwen3-embedding:latest** path remains off by default; lexical research requires no new
+embedding generation. Existing vector configuration/indexing requirements still apply if enabled.
+
+Research runs through the existing Temporal worker, not an in-memory UI task. In a terminal with
+the same exported settings, run:
+
+```powershell
+rtk proxy .venv/Scripts/python.exe scripts/research_worker.py
+```
+
+The Temporal server must already be reachable. Do not start another process on an occupied port.
+On this machine, the existing CLI and copied persistent state were verified with:
+
+```powershell
+rtk proxy .local-tools/temporal/temporal.exe server start-dev --ip 127.0.0.1 --headless --db-filename "$env:LOCALAPPDATA/LazyResearchOS/temporal-task4b-20261022.db"
+```
+
+The original project-directory state file was left intact after that CLI could not open it;
+the same bytes worked under Local AppData. The exact Windows/path cause is unconfirmed. This is a
+local development detail, not an application path requirement or production setup. A fresh machine
+must explicitly provision a supported Temporal runtime; see [official CLI guidance](https://docs.temporal.io/cli).
+
+Missing SerpApi credentials are visible in Research; personal-only requests remain usable. Queued
+requests wait for the research service. Refresh reads actual progress/results. Catch Up labels the
+baseline honestly when TabPFN is absent or ineligible; `TABPFN_MODEL_PATH` can explicitly opt into
+the existing local adapter. No demo seeds count as personal history. Actions support review/edit/
+accept/complete/dismiss/reopen with provenance and optimistic revisions; they execute nothing
+externally. Migration head is **0006**; PostgreSQL remains canonical.
+
+See [UI walkthrough and limits](docs/UI_WALKTHROUGH.md), [STATUS](docs/STATUS.md) and
+[NEXT](docs/NEXT.md). Deployment, auth, connectors, exports and schedules remain outside this task.
 
 ## PostgreSQL setup
 

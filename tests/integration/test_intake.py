@@ -75,6 +75,7 @@ def test_migration_schema_downgrade_and_upgrade(db: Engine) -> None:
         "research_proposal",
         "ranking_observation",
         "user_interaction",
+        "action_item",
     }
     if "embedding_vector" in inspect(db).get_table_names():
         expected.add("embedding_vector")

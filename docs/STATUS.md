@@ -1,3 +1,107 @@
+# Task 4B — Minimal readable Streamlit application
+
+Implemented and verified on **2026-10-22, Europe/Berlin**, from clean checkpoint **9b4a68d**
+(committed Task 4A). Recommended **GPT-6.1 Sol / Medium**, Claude Code **Sonnet 5**. User
+confirmed model 6.1 selected; exact runtime identity was not independently inferred. No
+subagents, staging, commit, push or amend. This section supersedes historical records below.
+
+## Delivered behavior and files
+
+The four sections are Add Sources, Catch Up, Research and Actions. New application workspace
+façade/models and narrow ports reuse existing intake/processing/ranking/indexing/mission/domain
+action contracts. Bootstrap alone selects adapters. UI app/presenters contain delivery logic;
+new PostgreSQL projections and action repository provide owner-scoped persistence. Migration
+**0006** adds action review state only; **0001–0005 are unchanged**. Added the explicit local
+launcher, bounded Temporal health probe, presenter/PostgreSQL/Streamlit tests and UI_WALKTHROUGH.
+Updated dependencies, schema inventory, import-boundary checks and product/architecture/data/
+roadmap/README/handoff docs. No FastAPI, React, connector, export or deployment was added.
+
+Intake supports mixed batch URLs, pasted text and TXT/Markdown/text-PDF uploads, per-entry
+receipts and explicit processing/retry. The optional idempotent sample button adds synthetic
+sources only. Catch Up exposes honest baseline/personal gating, reasons, explicit four-class
+feedback/corrections and deadline safeguards. Research saves scoped durable missions with explicit
+public permission, actual status/cancellation, structured briefs, exact evidence, Current Brief,
+history and stored baseline changes. Actions retain immutable proposals while edits and
+accept/complete/dismiss/reopen persist separate optimistic-revision task state. No external
+execution occurs. Empty/pending/partial/failed/unavailable states use sanitized messages.
+
+## Actual verification
+
+All shell/Python checks used rtk / rtk proxy. Final results:
+
+| Check run | Result |
+|---|---|
+| Full pytest, TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 | **451 passed in 163.72 s**, exit 0, no skips |
+| Integration coverage in that suite | **111 cases**, including real PostgreSQL and **3 live Temporal** cases |
+| Streamlit history regression after stable-ID fix | **1 passed in 8.31 s**; also included in final full run |
+| Ruff check | All checks passed, exit 0 |
+| Ruff format --check | **141 files already formatted**, exit 0 |
+| Strict mypy src | **70 source files**, no issues, exit 0 |
+| pip check | No broken requirements, exit 0 |
+| Migration round trip/drift | 0006 → 0005 → 0006, fresh/all-revision tests and drift passed in disposable PostgreSQL schemas |
+| Explicit development DB upgrade | Verified localhost lazyresearch_dev, upgraded to 0006; No new upgrade operations detected |
+| Streamlit startup | localhost:8501 health returned **ok** |
+
+All 433 pre-4B tests remain passing. New tests cover input bytes/presenters/errors, owner isolation,
+feedback/corrections, action lifecycle/edits/provenance/concurrency/SQL guards, migrations,
+Streamlit form interactions, result versions/citations/research actions and partial public-search
+failure. AppTest uses deterministic fake providers with real PostgreSQL; live Gemma is separate.
+An intermediate fixture attached a deadline to a no-date note and a persisted evidence decoder
+used Python instead of strict JSON restoration; both were corrected before final passing runs.
+The real-browser second publication exposed a stale topic DTO retained by Streamlit selection.
+Selectors now store stable IDs and resolve fresh records; regression publishes v2 while the page
+is open, then verifies Current Brief v2 and preserved historical v1.
+
+## Browser and runtime observations
+
+Real localhost Streamlit **1.66.1** + PostgreSQL + Ollama/Gemma walkthrough verified empty launch,
+mixed valid text/invalid file URL, example.com intake, multi-file synthetic TXT/two-page PDF,
+explicit real analysis/summary/topics/deadline action, baseline Catch Up, feedback persistence,
+action provenance and accept/complete. Final feedback submission moved the TXT item to Useful
+later with Your explicit choice and a success notice. Two real personal-only battery missions
+completed through the separate Temporal worker. Answer/summary/findings exposed original quotes.
+Final browser verified Current Brief v2, its frozen v1 baseline and model-only-change notice;
+selecting previous v1 showed the original publication and first-brief notice. UI_WALKTHROUGH
+records details.
+
+Development hot reload retained old backend imports; restarting the UI resolved that cached
+service mismatch. Restart after backend/config changes; browser refresh alone is insufficient.
+An early feedback write survived that UI error in canonical PostgreSQL. Screenshot export timed
+out in the computer-use tool; no screenshot artifact is claimed. Labeled native controls and
+narrow-sidebar navigation were exercised; no exhaustive accessibility audit is claimed.
+
+Temporal CLI could not open its project-path SQLite state although quick_check returned ok.
+Original bytes/file were preserved and copied to Local AppData; the same CLI started successfully
+there on localhost:7233. Exact Windows/path cause remains unknown. README documents explicit UI,
+worker and local Temporal startup. No production service was installed or deployment performed.
+
+## Limits and next task
+
+Synthetic single-owner local demo only: no authentication or private multi-user security claim.
+Refresh is manual, analysis is one source per explicit request, and research needs the separate
+worker. Bounded list/excerpt reads lack pagination. Cancellation fences publication while an
+in-flight bounded provider call may continue. Existing evidence support remains UNREVIEWED;
+heuristic conflicts/diffs, bounded retrieval and model action-recall limits still apply.
+No live SerpApi smoke, actual personal-history ranking-quality assessment, hosted verification,
+privacy erasure, connectors, OCR, exports, schedules or external actions were added.
+
+Community research found one relevant Streamlit ephemeral-state caution; PostgreSQL remains
+canonical and no extra memory service was added. Source and evidence limits are documented in
+UI_WALKTHROUGH. Challenge/event discovery was read-only; no submission/publication/message sent.
+
+Next is the single **Task 5A — deploy and verify a reproducible synthetic demo**, bounded in NEXT.
+Recommended **GPT-6.1 Sol / Medium**, Claude **Sonnet 5**. Do not start automatically.
+
+Final working tree: **12 modified tracked + 14 untracked files**, all unstaged; HEAD remains
+**9b4a68d**. No commit/push/amend. `git diff --check` passed; prior migrations 0001–0005 have
+no diff from HEAD. Audit of **158 tracked/untracked files and 64 local Markdown links** found
+no broken links, invalid JSON/fences or actual local-secret matches. No staged files and no
+leftover `lr_test_%` PostgreSQL schemas. No unresolved test failure.
+
+## Historical Task 4A handoff
+
+Older sections below preserve historical test counts, working-tree states and next-task wording.
+
 # Task 4A — Catch Up ranking with honest cold start
 
 Implemented and verified on **2026-10-22, Europe/Berlin**, starting from clean checkpoint

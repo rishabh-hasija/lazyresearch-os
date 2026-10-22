@@ -1,6 +1,6 @@
 # Five-day implementation roadmap
 
-The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B/3A/4A are implemented; 4B is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records exact validation. Further slices require a subsequent task instruction.
+The user approved the architecture and stack on 2026-10-21. Slices 1A/1B/2A/2B/3A/4A/4B are implemented; 5A is the single next task. Days below are relative workdays, not a deadline promise. Resolve remaining gates at the start of each affected slice; STATUS.md records exact validation. Further slices require a subsequent task instruction.
 
 ## Model policy
 
@@ -68,10 +68,10 @@ Use the user's project names consistently: architecture/ambiguous design = **GPT
 - Validation: chronological grouped split against baseline; macro-F1, per-class recall, top-k usefulness, latency; absent-class/small-history tests; ITEM_ARCHIVED and MISSION_USED_ITEM not silently assigned positive/negative labels.
 - Models: GPT-6.1 Sol / Medium; Claude Sonnet 5. Bounded integration with explicit evaluation; do not spend frontier capacity on routine metrics plumbing.
 
-### 4B: Minimal readable UI/API
+### 4B: Minimal readable application (implemented with Streamlit)
 
 - Objective: make batch intake, progress, Catch Up, research briefs/history/diffs, source citations, and action review usable.
-- Expected modules: api/, ui/, bootstrap/web.py, UI/API integration tests.
+- Delivered modules: ui/, application/workspace.py and projections/ports, bootstrap composition, action persistence/migration 0006, explicit launcher and Streamlit/PostgreSQL tests. No unused HTTP API was introduced.
 - Prerequisites: stack selection, Day 1-3 contracts, 4A for ranking display; public-demo auth policy.
 - Acceptance: originals distinguish saved/processing/failed; partial missions are labeled; citations open exact evidence; Current Brief and historical publication versions are distinct; corrections/status changes work; no external actions execute.
 - Validation: browser walkthrough of PRODUCT journeys, keyboard navigation, empty/error/partial states, owner isolation and unauthorized reads, cancellation display; record screenshots only when implementation exists.

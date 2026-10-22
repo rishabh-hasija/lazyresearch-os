@@ -174,4 +174,16 @@ Deletion first denies reads/cancels jobs, then purges original payloads, extract
 
 Migration 0004 adds research_topic (owner/title/description/current pointer/counters/timestamps), research_mission (frozen question/scope/baseline/run sequence plus separate status/stage/dispatch/freeze/timestamps/failure), research_stage (immutable bounded operation receipts), research_evidence (scoped source/extraction/chunk foreign keys and exact locator/metadata payload), research_result (unique mission and topic/version, immutable brief/evidence/conflicts/changes/processing), and research_proposal (unique result/ordinal with existing domain ActionProposal provenance/deadline values).
 
-Circular current/baseline foreign keys are deferred and owner/topic scoped. Mission/evidence guards enforce freezing; artifacts reject ordinary update/delete. Publication locks topic then mission, validates stored chunks and citations, inserts result/proposals and completes the mission atomically. Domain plan_publication remains the Current Brief policy. A slower older request can become a higher numbered historical publication without taking Current Brief. Comparison stores absent evidence as unavailable, not false. Result-specific proposal storage leaves the validated source-analysis proposal table unchanged; mutable user task persistence is still future work.
+Circular current/baseline foreign keys are deferred and owner/topic scoped. Mission/evidence guards enforce freezing; artifacts reject ordinary update/delete. Publication locks topic then mission, validates stored chunks and citations, inserts result/proposals and completes the mission atomically. Domain plan_publication remains the Current Brief policy. A slower older request can become a higher numbered historical publication without taking Current Brief. Comparison stores absent evidence as unavailable, not false. Result-specific proposal storage leaves the validated source-analysis proposal table unchanged.
+
+## Implemented action review state (4B)
+
+Migration 0006 adds action_item: stable task ID, owner/proposal identity, exactly one original
+analysis_id or result_id, user-editable title/description/raw and normalized deadline, status and
+optimistic revision. Scoped foreign keys and an insert guard validate the actual immutable
+proposal and initial PROPOSED/revision-zero state. Update guards freeze origin identity, require
+revision +1 and allow only domain status transitions. The repository checks the expected revision
+and unchanged original proposal under a per-task lock. Read-only proposal display creates no row;
+the first explicit edit/transition persists state idempotently. User edits never overwrite source
+analyses, research results, proposals or evidence. Accept/complete/dismiss/reopen record human task
+state only; no external action is executed.

@@ -1,6 +1,9 @@
 """Composition for intake and source analysis; no CLI, UI or startup migration."""
 
+import os
+from collections.abc import Mapping
 from dataclasses import replace
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from sqlalchemy import Engine
 
@@ -11,6 +14,8 @@ from lazyresearch.application.missions import ResearchOperations
 from lazyresearch.application.relevance import CatchUp
 from lazyresearch.application.relevance_models import RankingUnavailable
 from lazyresearch.application.retrieval import GenerateMissingEmbeddings, RetrieveEvidence
+from lazyresearch.application.workspace import Workspace
+from lazyresearch.domain.identity import OwnerId
 from lazyresearch.infrastructure.ai.embeddings import OllamaEmbeddings
 from lazyresearch.infrastructure.ai.ollama import OllamaProcessor, configured_ollama
 from lazyresearch.infrastructure.ai.synthesis import OllamaResearchSynthesizer
@@ -27,10 +32,45 @@ from lazyresearch.infrastructure.persistence.retrieval import (
     PostgreSQLRetrievalStore,
     PostgreSQLVectorStore,
 )
+from lazyresearch.infrastructure.persistence.workspace import (
+    PostgreSQLActionRepository,
+    PostgreSQLWorkspaceReads,
+)
 from lazyresearch.infrastructure.ranking import TabPFNRankingModel
 from lazyresearch.infrastructure.search import SerpApiSearch
 from lazyresearch.infrastructure.sources.extract import SourceTextExtractor
 from lazyresearch.infrastructure.sources.http import HTTPFetcher
+from lazyresearch.infrastructure.workflows.health import research_service_available
+
+
+def build_workspace(
+    settings: Settings | None = None,
+    *,
+    engine: Engine | None = None,
+    env: Mapping[str, str] | None = None,
+) -> Workspace:
+    values = os.environ if env is None else env
+    settings = settings or Settings.from_env(values)
+    database = engine if engine is not None else database_engine(settings.database_url)
+    owner = OwnerId(
+        UUID(values.get("UI_OWNER_ID", str(uuid5(NAMESPACE_URL, "lazyresearch-synthetic-ui"))))
+    )
+    workspace = Workspace(
+        owner,
+        PostgreSQLWorkspaceReads(database),
+        build_intake(settings, engine=database),
+        build_catch_up(settings, engine=database, tabpfn_path=values.get("TABPFN_MODEL_PATH")),
+        PostgreSQLActionRepository(database),
+        PostgreSQLMissionStore(database),
+        lambda: build_processing(settings, engine=database),
+        lambda scope_owner: PostgreSQLRetrievalStore(database).index(scope_owner, settings.chunks),
+        default_mission_scope(settings),
+        public_available=bool(settings.serpapi_api_key),
+    )
+    workspace.research_health = lambda: research_service_available(
+        settings.temporal_address, settings.temporal_namespace
+    )
+    return workspace
 
 
 def build_catch_up(

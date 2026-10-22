@@ -1,5 +1,12 @@
 # Architecture
 
+Task 4B adds a Streamlit delivery layer and application Workspace façade with narrow read/mission
+ports. Bootstrap composes existing use cases; UI imports no persistence or partner SDK. A separate
+mutable action_item table (0006) implements the existing ActionRepository contract and domain
+review lifecycle without changing immutable proposals. UI selectors retain stable IDs and resolve
+fresh records so asynchronous publication cannot leave an obsolete Current Brief pointer in a
+cached topic object. See [UI_WALKTHROUGH](UI_WALKTHROUGH.md) for verified behavior and limits.
+
 Task 4A adds application-owned RankingModel/RankingStore contracts, CatchUp, immutable feature
 observations/explicit-feedback persistence and optional local TabPFN behind bootstrap.
 Cold start and failed/unevaluated prediction use a visible rules baseline. Exact behavior,

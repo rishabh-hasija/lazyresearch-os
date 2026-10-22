@@ -1,15 +1,38 @@
-# Next task: 4B — Minimal readable application experience
+# Next task: 5A — Deploy and verify a reproducible synthetic demo
 
-Tasks 1A, 1B, 2A, 2B, 3A and 4A are implemented. Task 4A changes are unstaged on checkpoint **0a54517**. See STATUS.md for exact verification. Wait for a new user instruction; do not begin 4B automatically.
+Tasks 1A/1B/2A/2B/3A/4A/4B are implemented. Task 4B remains unstaged on checkpoint
+**9b4a68d**; see STATUS and UI_WALKTHROUGH for actual checks and limits. Wait for a new user
+instruction; do not begin deployment automatically or commit/push these changes.
 
-**Recommended Codex: GPT-6.1 Sol, Medium. Alternative Claude Code: Claude Sonnet 5.** Apply AGENTS.md's model-selection guard; do not guess identity or claim to switch the parent model.
+**Recommended Codex: GPT-6.1 Sol / Medium. Claude Code: Claude Sonnet 5.** Apply the AGENTS
+model guard. Escalate measured cross-layer failures to GPT-6.1 Sol High or GPT-6 Astra Medium /
+Claude Opus 5 when justified; these are project recommendations, not tool-availability claims.
 
-Read AGENTS, README, PRODUCT, ARCHITECTURE, DATA_MODEL, PARTNERS, ROADMAP, STATUS, RANKING_BENCHMARK and RESEARCH_MISSION_BENCHMARK, plus relevant ADRs. Implement only the bounded 4B delivery slice using the approved Streamlit direction and existing application services: batch intake receipts/progress, Catch Up groups/reasons/corrections, mission creation/status/cancellation, Current Brief/history/What Changed, and exact source/evidence views. Keep business logic outside UI; introduce only delivery contracts actually exercised. If the forthcoming brief requests a transport API, keep it thin and owner scoped rather than creating unused endpoints.
+Read AGENTS, README, PRODUCT, ARCHITECTURE, DATA_MODEL, PARTNERS, ROADMAP, STATUS,
+UI_WALKTHROUGH and the Gemma/retrieval/research/ranking benchmarks plus relevant ADRs.
+Bound the task to a reproducible synthetic Render demo and its verification. First verify the
+hosting budget, independent PostgreSQL DATABASE_URL, Temporal/worker connectivity, reachable
+inference path, secret provisioning and access/retention policy. Prepare concrete configuration
+and reviewable deployment changes before any final approval required for external publication.
+Do not use real personal inputs or claim production authentication/security from a fixed owner.
 
-Use synthetic/demo content only. Include clear pending/partial/failed/unavailable states, explicit public-search permission, correct Current Brief versus publication-order labels, immutable originals and exact extraction citations. Catch Up must expose BASELINE versus evaluated PERSONAL, preserve deadline visibility and user overrides, and never archive/delete from a prediction. No remote inference or new model download is implicit. No hosting/deployment, authentication expansion, connectors, exports, schedules, external action execution or ranking redesign in this task.
+Preserve the four-section Streamlit application and existing application ports. Explicitly
+migrate to **0006**, keep earlier revisions intact, and never require Render Postgres. Demonstrate
+URL/text/TXT/Markdown/text-PDF intake, real Gemma, transparent baseline and the actual optional
+TabPFN role, SerpApi only with authorized credentials, durable mission execution/cancellation,
+exact citations, Current Brief/history/What Changed, and human action-state edits. Do not relabel
+mock checks as live integrations or seed synthetic labels as personal history.
 
-Action review should exercise existing domain proposal/task transitions and add only the minimal owner-scoped persistence needed for accept/edit/complete/dismiss with optimistic revision checks and retained provenance. It must not imply an accepted proposal executed an external action. Do not alter immutable candidates/results to represent user edits.
+Verify fresh installation/upgrade, independent web/worker restarts, old-result persistence,
+workflow recovery, backup/restore, sanitized errors/logs, owner isolation and a small claim-support
+sample. Measure actual hosted limits. Local Task 4B passed 451 tests, including PostgreSQL and
+three live Temporal cases; the browser completed two real Gemma missions. Real SerpApi access,
+hosted runtime, real-user ranking quality and production privacy/security remain unverified.
+The Windows Temporal state-path workaround in README is local only, not deployment configuration.
 
-PostgreSQL 17.11 remains canonical; migration head is **0005**, and 0001–0004 are unchanged. Local Ollama has gemma4:e4b/qwen3-embedding:latest. Temporal remains localhost-only at 127.0.0.1:7233; start the application worker explicitly with scripts/research_worker.py. Real SerpApi smoke remains unvalidated without credentials. Optional TabPFN 2.2.1 and the public v2 checkpoint are installed locally in .venv / ignored .local-tools/ranking. Runtime defaults to baseline; the generic synthetic benchmark never counts as personal history. See RANKING_BENCHMARK.md for exact setup and performance.
-
-Preserve documented research limits (heuristic conflicts/diffs/privacy sanitization, bounded evidence, AND-token lexical recall, repeated external calls across crashes, and real Gemma action-recall misses). No entailment or general ranking-quality claim. Validate PRODUCT journeys, empty/error/partial states, owner-scoped reads/writes, keyboard usability, corrections/deadlines, action revision conflicts and cancellation. Record a real local browser walkthrough/screenshots only after UI exists. Keep existing tests passing; run PostgreSQL integration, relevant migrations, Ruff/format/mypy and diff checks. Update STATUS/NEXT, leave changes unstaged, and do not commit/push/amend.
+Retain existing bounded recall/evidence, heuristic conflicts/diffs, model action-recall and
+repeated-call crash-window limitations. No Gmail/RSS/Tinker, schedules, OCR, external action
+execution, broad ranking redesign or speculative transport layer. Defer exports unless separately
+authorized and core hosted acceptance is complete. Run relevant full tests, PostgreSQL/Temporal,
+migration drift, Ruff/format/mypy, dependency and git checks. Update README/STATUS/NEXT with exact
+outcomes and unresolved issues; do not commit/push/amend unless explicitly instructed.

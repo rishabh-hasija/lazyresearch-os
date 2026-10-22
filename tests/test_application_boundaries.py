@@ -29,3 +29,18 @@ def test_application_and_ports_do_not_import_infrastructure_or_providers() -> No
                 "httpx",
                 "pypdf",
             }, path
+
+
+def test_ui_uses_bootstrap_and_application_not_orm_or_partner_sdks() -> None:
+    root = Path(__file__).resolve().parents[1] / "src/lazyresearch/ui"
+    for path in root.rglob("*.py"):
+        modules = imports_in(path.read_text(encoding="utf-8"))
+        assert not any(m.startswith("lazyresearch.infrastructure") for m in modules), path
+        assert not {m.split(".")[0] for m in modules} & {
+            "sqlalchemy",
+            "psycopg",
+            "temporalio",
+            "tabpfn",
+            "requests",
+            "httpx",
+        }, path

@@ -18,8 +18,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+ui = ["streamlit>=1.66.1,<1.67"]
 ranking = ["tabpfn==2.2.1"]
-dev = ["pytest>=8,<10", "ruff>=0.9,<1", "mypy>=1.14,<2"]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1", "mypy>=1.14,<2", "streamlit>=1.66.1,<1.67"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

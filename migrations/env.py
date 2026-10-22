@@ -8,6 +8,7 @@ from lazyresearch.infrastructure.persistence import (  # noqa: F401
     mission_models,
     ranking_models,
     retrieval_models,
+    workspace_models,
 )
 from lazyresearch.infrastructure.persistence.database import database_engine
 from lazyresearch.infrastructure.persistence.models import Base
