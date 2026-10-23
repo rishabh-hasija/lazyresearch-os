@@ -1,3 +1,116 @@
+# Neon PostgreSQL setup completed - 2026-10-23
+
+This section supersedes the authentication-blocked attempt below.
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
+Exact active model identity unavailable. No subagents, commit or push.
+
+Retried neon login at user request: Auth complete (profile DEFAULT), exit 0.
+neon deploy exited 0 against production (br-ancient-union-b92ofdc8):
+No changes - branch production already matches the policy.
+Utilized services: Postgres.
+Pulled 3 Neon variables into .env: DATABASE_URL, DATABASE_URL_UNPOOLED, NEON_BRANCH.
+Existing local test configuration was retained. Secrets remain ignored.
+
+The empty production public schema was inspected before migrations. Created
+temporary branch codex-neon-migration-check-20261023 from production with expiration.
+Live direct-connection rehearsal passed base -> 0006, 0006 -> 0005 -> 0006 and
+Alembic drift check (No new upgrade operations detected). Then production upgraded
+to 0006; pgvector 0.8.6 available. Temporary branch deleted; branch list confirms
+only production remains. Migration revisions and domain/application code unchanged.
+
+Application keeps pooled DATABASE_URL with existing SQLAlchemy/psycopg 3;
+Alembic prefers direct DATABASE_URL_UNPOOLED. Both pooled and direct client
+connections verified TLS using psycopg pgconn.ssl_in_use. A server-side
+pg_stat_ssl False result behind the pooler did not describe client transport.
+
+Added python-dotenv as an explicit dependency. scripts/run_ui.py now parses quoted
+Neon env values without interpolation, and preserves existing process env.
+Added repeatable scripts/smoke_postgres.py, using real Streamlit AppTest and the
+actual configured PostgreSQL database, no mocked database or model invocation.
+
+Final verification:
+- rtk proxy npm run build: exit 0, Successfully built lazyresearch-os;
+  dist/lazyresearch_os-0.1.0-py3-none-any.whl.
+- Started rtk proxy .venv/Scripts/python.exe scripts/run_ui.py --env-file .env --port 8503.
+  HTTP GET /_stcore/health: ok. Stopped and restarted the app; health again ok.
+- UI smoke saved a synthetic note via Save sources; extraction persisted in Neon.
+  First smoke then failed on a wrong EvidenceCandidate field in the verification
+  script; fixed to hit.chunk.content_id. Subsequent complete smoke exited 0:
+  PostgreSQL pooled connection, client TLS and schema 0006: PASS
+  Fresh workspace source read and lexical retrieval: PASS
+  Streamlit Catch Up with live PostgreSQL: PASS
+  PostgreSQL end-to-end smoke: PASS
+- Same script --verify-only after app restart: same four PASS lines, exit 0.
+  One clearly labeled synthetic smoke source is retained for repeat verification.
+- Full pytest rerun after the Neon work (user-reported result): 455 tests collected;
+  **452 passed, 3 skipped, 0 failed in 278.99s (4m38s)**. The 3 skips are the live
+  Temporal integration tests because the local Temporal test environment was not active.
+  All PDF extraction tests passed in this clean full run, confirming that the earlier
+  PDF timeout failures were transient/environmental. This supersedes earlier
+  statements that the full suite had not been rerun.
+- Focused pytest (config/deployment/application boundaries/domain import boundaries),
+  PGCONNECT_TIMEOUT=3: 24 passed in 6.84s, exit 0.
+- Ruff check src tests migrations scripts: All checks passed!, exit 0.
+- Ruff format --check src tests migrations scripts: 125 files already formatted, exit 0.
+- mypy src: Success: no issues found in 72 source files, exit 0.
+- pip check: No broken requirements found, exit 0.
+- Final git diff --check: exit 0. Secret scan: PASS; nonignored tracked/untracked
+  files contain no actual Neon URLs/passwords; .env/.neon/node_modules are ignored.
+
+Failures resolved: initial browser sign-in timeout; smoke verification field typo;
+initial TLS probe attempted a nonexistent ConnectionInfo attribute, corrected to
+pgconn.ssl_in_use. Existing full offline Alembic SQL generation limitation at 0003
+remains; actual live migrations are verified. The full-suite rerun result is recorded above.
+Neon supplies PostgreSQL only. Render hosting, remote Temporal, model/search service
+deployment and hosted research recovery were not part of this task and remain
+unverified. App left running locally on port 8503 with Neon-backed configuration.
+
+Historical attempts and earlier feature verification follow.
+
+# Neon setup attempt - 2026-10-23 (authentication blocked)
+
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
+Exact active model identity unavailable. No subagents, commit or push.
+
+Global npm install of neon@latest succeeded (155 packages). Requested neon init
+for org org-proud-waterfall-95717607, project empty-firefly-09124609, production,
+Postgres only, exited 0. It wrote an OFFLINE, UNVERIFIED local link, neon.ts,
+package.json/package-lock.json, and user-level Neon agent plugins/skills/MCP settings.
+neon deploy exited 1: ERROR: Authentication timed out after 60 seconds.
+neon profile list still reported DEFAULT with account/auth absent and missing
+credentials. Asked owner to run neon login and finish browser sign-in.
+No Neon env pull, hosted migration, hosted data write/read, or Neon E2E is verified.
+
+Changes: retained SQLAlchemy/psycopg 3 and provider-neutral DATABASE_URL;
+Alembic prefers optional DATABASE_URL_UNPOOLED for direct migration connections.
+Added npm build wrapper scripts/build.mjs, which builds the actual Python wheel,
+and ignored .neon/node_modules. Added example direct URL and setup handoff docs.
+Local .env was not replaced by Neon because authentication failed.
+
+Exact checks:
+- rtk proxy npm run build: exit 0; Successfully built lazyresearch-os;
+  produced dist/lazyresearch_os-0.1.0-py3-none-any.whl.
+- rtk proxy .venv/Scripts/python.exe -m ruff check src tests migrations scripts:
+  exit 0; All checks passed!
+- rtk proxy .venv/Scripts/python.exe -m ruff format --check src tests migrations scripts:
+  exit 0; 124 files already formatted.
+- rtk proxy .venv/Scripts/python.exe -m mypy src:
+  exit 0; Success: no issues found in 72 source files.
+- Focused pytest files: tests/test_config.py, tests/test_deployment.py,
+  tests/test_application_boundaries.py, tests/domain/test_import_boundaries.py:
+  24 passed in 6.76s, exit 0, with PGCONNECT_TIMEOUT=3 via subprocess wrapper.
+  Original run stalled on the unreachable-database probe and was interrupted.
+- Alembic offline direct-URL selection with invalid fallback URL: PASS through 0002,
+  exit 0. Full head SQL generation failed at existing 0003 because MockConnection
+  has no scalar method (migration checks live extension capability). No revision changed.
+- Started scripts/run_ui.py --env-file .env --port 8503: Streamlit started.
+  GET http://127.0.0.1:8503/_stcore/health returned ok. Stopped after probe.
+  This used existing local configuration, not Neon, and proves HTTP startup only.
+- git diff --check: exit 0 before final handoff update; rerun recorded below.
+
+Not run: full test suite, live Neon migration/intake/read/retrieval/restart tests.
+Prior deployment status follows; its no-hosted-deployment limitation still applies.
+
 # Task 5A — Deployment preparation (public deployment NOT performed)
 
 **2026-10-22, Europe/Berlin**, from clean HEAD **bb5b48d**. Active model Claude Sonnet 5.5; recommended

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@neon/config": "^1.9.3",
+    "@neon/env": "^1.6.4"
+  },
+  "name": "lazyresearch-os-tooling",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}

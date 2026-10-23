@@ -25,3 +25,6 @@ dist/
 .DS_Store
 Thumbs.db
 .idea/
+# Neon local context and JavaScript tooling
+.neon
+node_modules/

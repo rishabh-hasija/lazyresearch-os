@@ -1,3 +1,68 @@
+## Neon setup verified (2026-10-23)
+
+This supersedes the historical blocked attempt below. neon login succeeded;
+neon deploy applied production and pulled DATABASE_URL, DATABASE_URL_UNPOOLED and
+NEON_BRANCH into ignored .env. No additional Neon services were enabled.
+Production schema is 0006; pgvector 0.8.6 is available. Live migration rehearsal on
+a temporary child branch passed fresh install, downgrade/upgrade and drift check;
+that branch has been deleted. Production pooled/direct client TLS verified.
+
+Keep SQLAlchemy/psycopg 3. Runtime reads DATABASE_URL; migrations prefer
+DATABASE_URL_UNPOOLED. Explicit env-file loading uses python-dotenv with
+interpolation disabled to preserve passwords and handles quoted Neon values.
+Hosted serve/worker entry points still read process environment only.
+
+With the Python environment installed:
+
+    npm install
+    npm run build
+    .venv/Scripts/python.exe scripts/run_ui.py --env-file .env --port 8503
+    .venv/Scripts/python.exe scripts/smoke_postgres.py --env-file .env --verify-only
+
+For first-time smoke use omit --verify-only: it explicitly saves a synthetic source
+via the real Streamlit UI if missing. The verified source remains in production for
+repeat checks. The smoke checks TLS/schema, real source extraction/read, lexical
+retrieval and Catch Up; it makes no model/search calls. After stopping/restarting
+the app, the verify-only smoke passed again. See STATUS for exact results.
+npm build produces the actual Python wheel; it does not host the frontend.
+
+For future migrations, explicitly load the env before invoking Alembic, e.g. from
+Python with load_dotenv(".env", interpolate=False), then
+alembic.command.upgrade(alembic.config.Config("alembic.ini"), "head").
+Do not migrate automatically at app startup.
+Render public hosting and remote Temporal/model deployment remain unverified.
+
+### Historical initial attempt
+
+## Neon setup attempt (2026-10-23)
+
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Sonnet 5. Exact active model was
+unavailable. User authorized the specified existing production branch.
+
+Global Neon CLI installation succeeded. Requested init linked project
+empty-firefly-09124609, org org-proud-waterfall-95717607, branch production,
+Postgres only. It created ignored .neon, neon.ts and npm metadata, and installed
+user-level agent plugins/skills/MCP configuration. The link was written offline
+and was not verified. neon deploy opened browser authentication but failed:
+ERROR: Authentication timed out after 60 seconds.
+No hosted database or env pull is verified. Owner must run neon login, finish
+browser sign-in, then deployment can be retried.
+
+Keep SQLAlchemy/psycopg 3 for the long-lived Python/Streamlit runtime. Neon provides
+DATABASE_URL for pooled app traffic and DATABASE_URL_UNPOOLED for direct migrations.
+Alembic now prefers the latter, falling back to DATABASE_URL for other providers.
+See [Neon pooling guidance](https://neon.com/docs/connect/connection-pooling).
+
+npm run build packages the Python app as a wheel in ignored dist/. It uses .venv
+if present, otherwise PYTHON/python, and requires pip, setuptools and wheel.
+Node dependencies are Neon configuration tooling only; this does not host the UI.
+
+After login: retry neon deploy; inspect env names without exposing values; explicitly
+load the pulled env for migrations and app launch; migrate using the direct URL;
+seed synthetic fixtures; test actual intake/read/retrieval and persistence after
+app restart against Neon. Local Streamlit health alone is not database proof.
+Render hosting remains separate.
+
 # Deployment (Task 5A)
 
 **Status: deployment artifacts are prepared and verified locally. No public URL exists.** Creating a Render

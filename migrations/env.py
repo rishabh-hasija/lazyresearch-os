@@ -24,6 +24,7 @@ def include_name(name, type_, parent_names):  # type: ignore[no-untyped-def]
 
 
 config = context.config
+database_url = os.environ.get("DATABASE_URL_UNPOOLED") or os.environ.get("DATABASE_URL", "")
 connection = config.attributes.get("connection")
 if connection is not None:
     context.configure(
@@ -36,7 +37,7 @@ if connection is not None:
         context.run_migrations()
 elif context.is_offline_mode():
     context.configure(
-        url=os.environ["DATABASE_URL"],
+        url=database_url,
         target_metadata=Base.metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -44,7 +45,7 @@ elif context.is_offline_mode():
     with context.begin_transaction():
         context.run_migrations()
 else:
-    engine = database_engine(os.environ["DATABASE_URL"])
+    engine = database_engine(database_url)
     with engine.connect() as connection:
         context.configure(
             connection=connection,
