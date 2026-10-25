@@ -5,10 +5,11 @@ import os
 from uuid import uuid4
 
 import pytest
-from temporalio.client import Client
 from temporalio.worker import Replayer
 
 from lazyresearch.application.mission_models import MissionScope
+from lazyresearch.infrastructure.config import Settings
+from lazyresearch.infrastructure.workflows.connection import connect_temporal
 from lazyresearch.infrastructure.workflows.research import ResearchMissionWorkflow
 from lazyresearch.infrastructure.workflows.runtime import reconcile, research_worker
 from tests.integration.test_missions import mission_setup  # noqa: F401, F811
@@ -26,7 +27,7 @@ def test_real_workflow_publication_replay_and_dispatch_retry(mission_setup):  # 
     )
 
     async def run():
-        client = await Client.connect(address)
+        client = await connect_temporal(Settings(database_url="unused", temporal_address=address))
         queue = "lr-test-" + uuid4().hex
         async with research_worker(client, ops, queue):
             assert await reconcile(client, ops.store, queue) == 1
@@ -89,7 +90,7 @@ def test_activity_retry_worker_restart_and_cancellation(mission_setup):  # noqa:
     )
 
     async def run():
-        client = await Client.connect(address)
+        client = await connect_temporal(Settings(database_url="unused", temporal_address=address))
         queue = "lr-restart-" + uuid4().hex
         async with research_worker(client, ops, queue):
             await reconcile(client, ops.store, queue)
@@ -160,7 +161,7 @@ def test_source_retry_and_publish_ack_loss_do_not_duplicate(mission_setup):  # n
     )
 
     async def run():
-        client = await Client.connect(address)
+        client = await connect_temporal(Settings(database_url="unused", temporal_address=address))
         queue = "lr-idempotency-" + uuid4().hex
         async with research_worker(client, ops, queue):
             await reconcile(client, ops.store, queue)

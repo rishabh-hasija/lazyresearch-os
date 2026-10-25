@@ -3,6 +3,7 @@
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from urllib.parse import urlsplit
 
 from lazyresearch.application.analysis_models import AnalysisConfig
 from lazyresearch.application.intake_models import IntakeLimits
@@ -27,11 +28,15 @@ class Settings:
     search_max_queries: int = 3
     search_max_results: int = 10
     search_timeout_seconds: float = 20
-    temporal_address: str = "127.0.0.1:7233"
+    temporal_address: str = field(default="", repr=False)
     temporal_namespace: str = "default"
     temporal_task_queue: str = "lazyresearch-missions-v1"
 
+    temporal_api_key: str = field(default="", repr=False)
+    temporal_tls: bool | None = None
+
     def __post_init__(self) -> None:
+        self.validate_temporal()
         if not 1 <= self.retrieval_limit <= 50 or not 1 <= self.retrieval_per_source <= 20:
             raise ValueError("invalid retrieval defaults")
         if not 1 <= self.rrf_k <= 1000:
@@ -42,6 +47,53 @@ class Settings:
             or not 1 <= self.search_timeout_seconds <= 60
         ):
             raise ValueError("invalid public search budget")
+
+    def validate_temporal(self, *, required: bool = False) -> None:
+        if self.temporal_tls is not None and not isinstance(self.temporal_tls, bool):
+            raise ValueError("TEMPORAL_TLS must be true or false")
+        if not self.temporal_address:
+            if required or self.temporal_api_key or self.temporal_tls:
+                raise ValueError("TEMPORAL_ADDRESS is required when Temporal is enabled")
+            return
+        try:
+            target = urlsplit("//" + self.temporal_address)
+            valid = (
+                bool(target.hostname)
+                and target.port is not None
+                and 1 <= target.port <= 65535
+                and target.username is None
+                and target.password is None
+                and not target.path
+                and not target.query
+                and not target.fragment
+                and not any(c.isspace() for c in self.temporal_address)
+            )
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ValueError("TEMPORAL_ADDRESS must be host:port without URL or credentials")
+        if not self.temporal_namespace.strip() or not self.temporal_task_queue.strip():
+            raise ValueError("TEMPORAL_NAMESPACE and TEMPORAL_TASK_QUEUE must not be empty")
+        if self.temporal_api_key and any(c.isspace() for c in self.temporal_api_key):
+            raise ValueError("TEMPORAL_API_KEY must not contain whitespace")
+        if self.temporal_cloud:
+            if not self.temporal_api_key:
+                raise ValueError("TEMPORAL_API_KEY is required for Temporal Cloud")
+            if self.temporal_namespace == "default":
+                raise ValueError("TEMPORAL_NAMESPACE must be configured for Temporal Cloud")
+        if (self.temporal_api_key or self.temporal_cloud) and self.temporal_tls is False:
+            raise ValueError("TEMPORAL_TLS must be enabled for API-key authentication or Cloud")
+
+    @property
+    def temporal_cloud(self) -> bool:
+        host = (urlsplit("//" + self.temporal_address).hostname or "").lower().rstrip(".")
+        return host.endswith((".tmprl.cloud", ".temporal.io"))
+
+    @property
+    def temporal_tls_enabled(self) -> bool:
+        if self.temporal_tls is not None:
+            return self.temporal_tls
+        return bool(self.temporal_api_key) or self.temporal_cloud
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -68,6 +120,9 @@ class Settings:
         enabled = values.get("VECTOR_SEARCH_ENABLED", "false").lower()
         if enabled not in {"true", "false"}:
             raise ValueError("VECTOR_SEARCH_ENABLED must be true or false")
+        tls = values.get("TEMPORAL_TLS", "").strip().lower()
+        if tls not in {"", "true", "false"}:
+            raise ValueError("TEMPORAL_TLS must be true or false")
         return cls(
             url,
             limits,
@@ -94,7 +149,9 @@ class Settings:
             search_max_queries=int(values.get("SEARCH_MAX_QUERIES", "3")),
             search_max_results=int(values.get("SEARCH_MAX_RESULTS", "10")),
             search_timeout_seconds=float(values.get("SEARCH_TIMEOUT_SECONDS", "20")),
-            temporal_address=values.get("TEMPORAL_ADDRESS", "127.0.0.1:7233"),
+            temporal_address=values.get("TEMPORAL_ADDRESS", ""),
+            temporal_api_key=values.get("TEMPORAL_API_KEY", ""),
+            temporal_tls=None if not tls else tls == "true",
             temporal_namespace=values.get("TEMPORAL_NAMESPACE", "default"),
             temporal_task_queue=values.get("TEMPORAL_TASK_QUEUE", "lazyresearch-missions-v1"),
         )

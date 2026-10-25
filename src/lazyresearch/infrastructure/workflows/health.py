@@ -1,16 +1,16 @@
-"""Bounded read-only service probe; no worker or in-memory mission fallback."""
+"""Bounded read-only probe; no worker or in-memory mission fallback."""
 
 import asyncio
 
-from temporalio.client import Client
+from lazyresearch.infrastructure.config import Settings
+from lazyresearch.infrastructure.workflows.connection import verify_temporal
 
 
-def research_service_available(address: str, namespace: str) -> bool:
-    async def probe() -> bool:
-        client = await Client.connect(address, namespace=namespace)
-        return await client.service_client.check_health()
-
+def research_service_available(settings: Settings) -> bool:
+    if not settings.temporal_address:
+        return False
     try:
-        return asyncio.run(asyncio.wait_for(probe(), timeout=3))
+        asyncio.run(asyncio.wait_for(verify_temporal(settings), timeout=3))
+        return True
     except Exception:
         return False

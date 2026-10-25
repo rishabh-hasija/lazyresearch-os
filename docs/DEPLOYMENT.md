@@ -81,9 +81,11 @@ builds from a pushed Git branch. None of that was done; nothing below claims a h
 | SerpApi | `SERPAPI_API_KEY` secret on the web service **and** the worker | Search runs inside the worker; UI only reads it to enable the checkbox. |
 
 The web process reads/writes PostgreSQL only; the worker's dispatch reconciliation (every 5 s) picks up queued
-missions from PostgreSQL. So the web service never needs to reach Temporal or Ollama. Consequence: on Render, the
-UI's Temporal probe fails unless `TEMPORAL_ADDRESS` is publicly reachable, so Research shows "research service
-unavailable; requests remain queued". This is accurate for the supervised design but cosmetically alarming.
+missions from PostgreSQL. The web service does not require Temporal or Ollama connectivity.
+Temporal settings/secrets may be omitted on Render; direct probing is optional. An unconfigured
+or unsuccessful web probe reports that Temporal access is unverified from this process, while
+missions remain saved for the external worker. A successful probe proves namespace access,
+not that a worker is polling. No worker heartbeat is implemented.
 
 ## Research findings (docs fetched 2026-10-22)
 
@@ -94,10 +96,9 @@ unavailable; requests remain queued". This is accurate for the supervised design
 - Neon: pgvector available on every plan (0.8.0 documented). HNSW/IVFFlat cap `vector` at 2,000 dimensions; this
   project uses exact search (no index) with 4,096-dimension qwen vectors, so it is unaffected. Free-plan storage/compute
   quotas were not verified.
-- Temporal Cloud: namespaces use API-key or mTLS auth (SDK connect docs linked from the get-started page). Trial/credits
-  and address format were not on the fetched page. **Worker TLS/API-key connection is not implemented** —
-  `scripts/research_worker.py` connects plaintext to `TEMPORAL_ADDRESS`. Using Temporal Cloud needs a small, separate
-  code change (see NEXT).
+- Temporal Cloud: the worker, mission smoke and optional health probe now share official Python
+  SDK API-key/TLS connection support (2026-10-25). Local plaintext Temporal remains supported.
+  See configuration and verification below; this does not verify hosted workflow recovery.
 - Inference: measured locally — gemma4:e4b is 6.58 GB (Q4_K_M, 7.5B params) on an RTX 3060 6 GB laptop GPU; warm source
   analysis ≈ 7.6 s, research synthesis ≈ 38 s; qwen3-embedding is 4.68 GB, warm batch ≈ 0.7 s. These need a GPU or a
   large-RAM host; not practical on Render CPU instances. Do **not** expose raw Ollama to the internet.
@@ -142,5 +143,71 @@ sidebar **System status → Check services** panel and `scripts/health.py`; a de
 
 ## Not verified
 
-Render deploy, public URL, Neon, remote Temporal, real SerpApi call (no key), hosted restart/recovery, hosted
+Render deploy, public URL, real SerpApi call, hosted restart/recovery, hosted
 performance, live Render cold start, screenshots (no stable browser capture was attempted).
+
+## Temporal local and Cloud configuration (2026-10-25)
+
+Every application connection uses the same SDK helper: worker/reconciler, synthetic mission smoke,
+and optional web/CLI health probe. It calls official
+[Client.connect](https://python.temporal.io/temporalio.client.Client.html) with `api_key` and `tls`;
+no custom auth headers or transport. Workflow definitions, dispatch and persistence are unchanged.
+
+| Setting | Local development | Temporal Cloud |
+|---|---|---|
+| `TEMPORAL_ADDRESS` | `127.0.0.1:7233` (explicit) | Exact gRPC host:port from the namespace console |
+| `TEMPORAL_NAMESPACE` | `default` if omitted | Exact namespace/account name from console |
+| `TEMPORAL_API_KEY` | Empty/omitted | Required, from an authorized secret store or ignored env file |
+| `TEMPORAL_TLS` | `false` or omitted | `true` or omitted (derived from API key) |
+| `TEMPORAL_TASK_QUEUE` | `lazyresearch-missions-v1` default | Same value on all workers/dispatchers |
+
+Current owner-supplied namespace: `quickstart-lazyresearch-demo.xesfo`. This is documentation,
+not a runtime default. Copy the endpoint from the console; no endpoint is inferred from this name.
+Use only placeholders in tracked files, as shown in `.env.example`.
+
+When the address is absent/empty, Temporal is unconfigured in that process; database/UI operations
+still work. Commands that actually connect (worker or smoke) require an explicit address.
+This removes the old implicit loopback target: local users should retain the address in
+`.env.example` or export it explicitly. Exported environment variables are authoritative.
+
+TLS defaults to true when an API key or a recognized Cloud endpoint is present, otherwise false.
+Explicit `TEMPORAL_TLS=false` with any API key or Cloud endpoint is rejected before networking.
+Known Cloud host suffixes (`.tmprl.cloud`, `.temporal.io`) additionally require an API key and
+a non-default namespace. Custom endpoint aliases must supply the key/namespace explicitly;
+host detection is validation assistance, not an endpoint discovery mechanism.
+TLS-only self-hosted connections are supported; client-certificate/mTLS configuration is outside
+this task. Invalid TLS booleans, malformed addresses/embedded credentials, empty enabled namespace/
+queue and keys with whitespace fail with messages that omit values. Key and address are omitted
+from settings repr; SDK connection/namespace failures are replaced with sanitized messages.
+
+Local server and worker (using exported settings; worker does not implicitly load env files):
+
+```powershell
+rtk proxy .local-tools/temporal/temporal.exe server start-dev --ip 127.0.0.1 --headless
+# In another terminal, export DATABASE_URL and the local Temporal settings above.
+rtk proxy .venv/Scripts/python.exe scripts/research_worker.py
+```
+
+For Cloud, export the Cloud settings above on the external worker machine alongside DATABASE_URL,
+AI and optional search settings, then run the same worker command. No inbound connection to the
+worker machine is needed. Do not start a duplicate local server on an occupied port.
+
+Repeatable read-only connectivity smoke (local or Cloud):
+
+```powershell
+rtk proxy .venv/Scripts/python.exe scripts/smoke_temporal.py --env-file .env
+# Or, with settings already exported:
+rtk proxy .venv/Scripts/python.exe scripts/smoke_temporal.py
+```
+
+Only an explicitly requested env file is loaded, with interpolation disabled and existing process
+values taking precedence. A missing file fails clearly. The smoke needs no database or model service.
+It connects, describes the configured namespace to verify access, and prints only PASS/FAIL.
+It never prints credentials, starts workflows, writes database records or runs a worker.
+The smoke has a 20-second overall bound; shared connection attempts have a 10-second bound,
+namespace RPCs 5 seconds, and optional web probes 3 seconds.
+
+Live Cloud smoke on 2026-10-25: PASS using the owner's ignored `.env`, API key and TLS;
+configured namespace access verified without workflows. This proves connectivity and namespace
+permission only. Worker polling, mission execution/recovery on Cloud, Render hosting and inference
+availability need a subsequent authorized verification task.

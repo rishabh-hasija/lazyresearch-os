@@ -6,8 +6,6 @@ from pathlib import Path
 from time import perf_counter
 from uuid import uuid4
 
-from temporalio.client import Client
-
 from lazyresearch.application.intake_models import IntakeInput
 from lazyresearch.application.mission_models import MissionScope
 from lazyresearch.bootstrap import build_research
@@ -15,11 +13,13 @@ from lazyresearch.domain.content import SourceType
 from lazyresearch.domain.identity import OwnerId
 from lazyresearch.infrastructure.config import Settings
 from lazyresearch.infrastructure.persistence.missions import PostgreSQLMissionStore
+from lazyresearch.infrastructure.workflows.connection import connect_temporal
 from lazyresearch.infrastructure.workflows.runtime import reconcile, research_worker
 
 
 async def main() -> None:
     settings = Settings.from_env()
+    client = await connect_temporal(settings)
     operations = build_research(settings)
     store = operations.store
     assert isinstance(store, PostgreSQLMissionStore)
@@ -39,7 +39,6 @@ async def main() -> None:
         )
     topic = store.create_topic(owner, "Synthetic home battery smoke")
     mission = store.create_mission(owner, topic.id, "Battery", MissionScope(max_evidence=4))
-    client = await Client.connect(settings.temporal_address, namespace=settings.temporal_namespace)
     queue = "lr-smoke-" + uuid4().hex
     started = perf_counter()
     async with research_worker(client, operations, queue):

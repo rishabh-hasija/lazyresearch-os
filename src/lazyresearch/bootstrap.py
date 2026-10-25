@@ -68,9 +68,7 @@ def build_workspace(
         default_mission_scope(settings),
         public_available=bool(settings.serpapi_api_key),
     )
-    workspace.research_health = lambda: research_service_available(
-        settings.temporal_address, settings.temporal_namespace
-    )
+    workspace.research_health = lambda: research_service_available(settings)
     return workspace
 
 

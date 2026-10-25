@@ -37,9 +37,20 @@ def check_database(settings: Settings) -> ServiceHealth:
 
 
 def check_temporal(settings: Settings) -> ServiceHealth:
-    ok = research_service_available(settings.temporal_address, settings.temporal_namespace)
+    if not settings.temporal_address:
+        return ServiceHealth(
+            "temporal",
+            False,
+            "Not checked: Temporal is not configured in this process; "
+            "missions use PostgreSQL dispatch",
+        )
+    ok = research_service_available(settings)
     return ServiceHealth(
-        "temporal", ok, "Temporal reachable" if ok else "Temporal not reachable from this process"
+        "temporal",
+        ok,
+        "Temporal namespace reachable; worker activity not verified"
+        if ok
+        else "Temporal access not verified from this process; missions remain in PostgreSQL",
     )
 
 

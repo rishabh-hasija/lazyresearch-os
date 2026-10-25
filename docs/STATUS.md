@@ -1,3 +1,79 @@
+# Temporal Cloud API-key/TLS support - 2026-10-25
+
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
+Exact active model variant unavailable. No subagents, commit, push or Render deployment.
+This section supersedes older statements that Temporal Cloud connection support is absent.
+
+Implemented one shared official SDK connection path using Client.connect(api_key=..., tls=...).
+Worker/reconciler, synthetic mission smoke and optional health probes all use it.
+Temporal workflow definitions, PostgreSQL dispatch, domain/application and migrations are unchanged.
+The existing local server remains usable without authentication. Address is now explicit:
+missing/empty TEMPORAL_ADDRESS leaves Temporal unconfigured for web-only database use,
+but connection commands reject it. Local .env.example retains 127.0.0.1:7233/default.
+
+API keys are optional locally, mandatory for recognized Cloud endpoints, and omitted from repr.
+TLS is explicit true/false or derived from the API key/Cloud endpoint; plaintext with a key/Cloud
+is rejected. Cloud requires a non-default namespace. Malformed addresses, URL credentials,
+empty enabled namespace/queue, invalid TLS and whitespace in keys fail without echoing values.
+Shared connection and namespace failures suppress SDK exception messages/chained tracebacks.
+No real key or endpoint was written to tracked files; the owner's ignored .env was not modified.
+
+Health probes now verify namespace access with read-only DescribeNamespace, rather than only
+server-wide health. Missing config skips networking; failed web probes state access is unverified
+from this process. PostgreSQL still accepts/retains missions for the external worker.
+Successful probes explicitly do not prove worker polling. Render startup/readiness has no new
+Temporal dependency and no Temporal secret is needed on the web service.
+
+Added scripts/smoke_temporal.py: explicit optional --env-file, no interpolation, process env
+precedence, bounded connection/namespace read, generic PASS/FAIL only, no workflows or database/model
+access. Worker and synthetic mission smoke continue to read exported env, without implicit files.
+
+Files changed:
+- .env.example; docs/DEPLOYMENT.md; docs/STATUS.md; docs/NEXT.md.
+- src/lazyresearch/infrastructure/config.py.
+- src/lazyresearch/infrastructure/workflows/connection.py (new), health.py.
+- src/lazyresearch/infrastructure/health.py; src/lazyresearch/bootstrap.py; src/lazyresearch/ui/app.py.
+- scripts/research_worker.py; scripts/smoke_research.py; scripts/smoke_temporal.py (new).
+- tests/test_temporal_connection.py (new); tests/integration/test_mission_temporal.py.
+
+Verification (existing .venv Python 3.12.10, every shell invocation through rtk):
+- Initial inspection: clean git status; HEAD 2c3ffa7 Add Neon deployment support; prior commits
+  2f65b49, bb5b48d, 9b4a68d, 0a54517.
+- Focused pytest tests/test_temporal_connection.py tests/test_deployment.py -v:
+  36 passed in 134.38s, exit 0.
+- Full suite: python -m pytest -v through the existing .venv, with
+  TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 set only in the test subprocess:
+  487 passed in 309.66s (5m09s), exit 0; no failures or skips.
+  All 3 live local Temporal integration tests passed: publication/replay/dispatch retry,
+  activity retry/worker restart/cancellation, source retry/publication acknowledgment loss.
+  Existing PostgreSQL integration, PDF extraction and Streamlit UI tests passed.
+- rtk proxy .venv/Scripts/python.exe -m ruff check .: All checks passed!, exit 0.
+- rtk proxy .venv/Scripts/python.exe -m ruff format --check .:
+  152 files already formatted, exit 0.
+- rtk proxy .venv/Scripts/python.exe -m mypy src:
+  Success: no issues found in 73 source files, exit 0.
+- rtk proxy .venv/Scripts/python.exe scripts/smoke_temporal.py --env-file .env:
+  Temporal connection and namespace access: PASS, exit 0; actual Cloud endpoint, API key and TLS,
+  namespace matches quickstart-lazyresearch-demo.xesfo. No workflows started.
+- Same smoke with explicitly exported local 127.0.0.1:7233/default, TLS false, no API key:
+  Temporal connection and namespace access: PASS, exit 0. Existing local server reused.
+- Actual-key scan of tracked and nonignored untracked files: 0 matches, exit 0.
+- Final git diff --check: exit 0 (no whitespace errors).
+
+During implementation, mypy caught the SDK RPC argument name (timeout, not rpc_timeout);
+fixed before both live smokes. Ruff line length corrected. No unresolved implementation failures.
+
+Limits: Cloud connectivity/namespace authorization is verified, but Cloud worker polling,
+mission execution/recovery and hosted inference are not. No Cloud workflows were run.
+No worker heartbeat or mTLS client-certificate configuration was added. Custom endpoint aliases
+must be configured with the correct key/namespace; suffix detection does not discover endpoints.
+Local workflows/replay/recovery run only against TEMPORAL_TEST_ADDRESS, explicitly set to the
+existing local server for this task. Render deployment remains a separate authorized task.
+
+Git: 15 changed files: 12 modified tracked files and 3 new untracked files; all unstaged. No staging, commit or push.
+
+Historical verification follows.
+
 # Neon PostgreSQL setup completed - 2026-10-23
 
 This section supersedes the authentication-blocked attempt below.

@@ -318,8 +318,9 @@ def research(work: Workspace) -> None:
     st.header("Research")
     if work.research_health and not work.research_health():
         st.warning(
-            "The research service is unavailable. "
-            "Requests remain saved and queued until it returns."
+            "Temporal access cannot be verified from this web process. "
+            "Requests are saved in PostgreSQL for the external worker; "
+            "its availability is not confirmed here."
         )
     st.caption(
         "Requests are saved durably. The separate research service must be "
