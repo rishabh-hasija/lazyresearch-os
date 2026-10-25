@@ -1,49 +1,43 @@
-# Next task: Render-hosted verification and challenge handoff
+# Next task: final submission preparation (not started)
 
 Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
-Escalate demonstrated networking/Temporal Cloud issues to GPT-6 Astra Medium /
-Claude Opus 5. These are project recommendations, not tool-availability claims.
+Apply AGENTS.md active-model guard.
 
-Neon PostgreSQL setup is completed and verified on 2026-10-23:
-project empty-firefly-09124609, production branch br-ancient-union-b92ofdc8,
-schema 0006, pgvector 0.8.6. DATABASE_URL (pooled) and DATABASE_URL_UNPOOLED (direct)
-are in ignored .env; do not print or commit them. Alembic prefers the direct URL.
-The temporary migration branch was deleted. Streamlit intake, read, Catch Up,
-lexical retrieval and persistence after restart passed against the real Neon DB.
-See STATUS for exact commands/outcomes and DEPLOYMENT for setup instructions.
+Actual Render deployment and supervised hosted verification completed 2026-10-25.
+Public URL: https://lazyresearch-os-demo.onrender.com/
+Docker Free service srv-dbes6g7b9u1s73apcs0g, Blueprint exs-dbes6a0ae00c73e683s0,
+runtime commit 301068f (already on public main). No commit/push was performed.
 
-Next authorized slice must address remaining hosting work; do not begin automatically.
-Render Blueprint requires a pushed branch: ask before commit/push. Supply secrets,
-decide supervised versus rented inference, optionally supply SerpApi key.
-Temporal Cloud API-key/TLS support and read-only namespace connectivity are verified
-on 2026-10-25. See DEPLOYMENT for local/Cloud env settings and smoke command.
-No Cloud workflows were started. Next, separately authorize Cloud worker polling,
-a synthetic mission and restart/recovery verification with configured model services.
-The web must continue to use PostgreSQL dispatch without requiring Temporal access;
-a web probe does not establish external worker availability.
-Verify public intake, Catch Up, research/history/actions, restart/recovery and
-graceful model-offline behavior. Measure hosted latency and capture screenshots.
-Then polish README/demo video/DEV article/submission checklist and release tag.
-No new product features. Challenge deadline discrepancy remains in ROADMAP.
+Verified: hosted pasted-text intake/source inspection, Catch Up baseline, queued offline
+mission and completed Cloud/Gemma research, exact citations/history, source-action
+acceptance/provenance, independent web restart with Neon persistence, worker restart.
+Neon TLS/schema 0006/pgvector, seven synthetic sources/real analyses/seven proposals,
+one ACCEPTED. No migration needed. See latest STATUS/DEPLOYMENT for exact evidence/timings.
 
-Local repeat verification:
-- npm run build (packages the Python app; requires configured Python toolchain).
-- .venv/Scripts/python.exe scripts/run_ui.py --env-file .env --port 8503
-- .venv/Scripts/python.exe scripts/smoke_postgres.py --env-file .env --verify-only
-The smoke source is synthetic and intentionally retained; no model calls are made.
-The full suite has now been rerun after the Neon work (user-reported): 455 collected,
-452 passed, 3 skipped, 0 failed in 278.99s (4m38s). All PDF extraction tests passed
-in this clean full run; earlier PDF timeout failures were transient/environmental.
-Those 3 previously skipped Temporal integration tests passed on 2026-10-25
-against the existing local server, using the shared connection helper.
-Hosted research recovery and public Render checks remain unverified. No commit or push performed.
+External worker PID 10660 was left running against Neon, Temporal Cloud API-key/TLS and
+local Ollama, process-only AI_TIMEOUT_SECONDS=240. Check the process before duplicating it.
+Owner machine/GPU must stay awake for new research; this is a supervised demo.
+Render has no Temporal key or inbound route to local Ollama. Web accepts DB dispatch
+without direct Temporal/model access. Explicit source analysis still runs locally.
 
-Latest verification (2026-10-25, this agent): python -m pytest -v with the explicit
-local TEMPORAL_TEST_ADDRESS passed all 487 tests in 309.66s, no failures/skips.
-Ruff check ., Ruff format --check . (152 files), mypy src (73 source files) and
-git diff --check passed. Local unauthenticated and real Cloud API-key/TLS
-read-only namespace smokes both passed. Repeat the Cloud check with:
-rtk proxy .venv/Scripts/python.exe scripts/smoke_temporal.py --env-file .env
-Keep the key/endpoint in ignored env or exported process settings, never tracked files.
-The full details and changed file inventory are in STATUS. No Render deployment,
-Cloud workflow execution, commit or push was performed.
+A separately authorized final submission task can begin. Keep claims factual:
+- No live SerpApi key/search verification; Docker uses baseline, not hosted TabPFN.
+- Research synthesis produced zero action_candidates; source analysis produced real actions.
+- Slow incremental page/action rendering; coarse UI observation timings are not benchmarks.
+- Long lexical questions can return no evidence; initial failed mission remains in history.
+- Generated factual support UNREVIEWED; no multi-version hosted rerun, restore drill,
+  p95/concurrency or free idle-cold-start measurement.
+- Synthetic shared public owner, no authentication/private-data claim.
+- Resolve challenge deadline discrepancy in ROADMAP before relying on submission timing.
+
+Next scope, only when authorized: README/demo walkthrough/video/DEV submission materials
+using actual hosted behavior, honest partner-role/availability claims and screenshots.
+Do not begin new product features, performance refactors, release tags, external
+publication, commit or push automatically. If a runtime fix needs deployment, stop before
+any required pushed commit and tell the user exactly what must be pushed.
+
+Tests on unchanged deployed runtime: full pytest 484 passed/3 skipped in 292.69 s;
+separate explicit local Temporal integration 3 passed in 18.72 s; Ruff check/format
+(152 files), mypy (73 files) passed. Hosted smoke/recovery checks passed.
+Final whitespace and credential scans are recorded in STATUS.
+Only README.md, docs/DEPLOYMENT.md, docs/STATUS.md, docs/NEXT.md modified.

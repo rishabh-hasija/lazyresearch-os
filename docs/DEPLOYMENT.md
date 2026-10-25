@@ -1,3 +1,69 @@
+# Live supervised Render deployment - 2026-10-25
+
+Public demo: https://lazyresearch-os-demo.onrender.com/
+
+Render Docker Free web service lazyresearch-os-demo:
+- Service: srv-dbes6g7b9u1s73apcs0g
+- Blueprint: exs-dbes6a0ae00c73e683s0
+- Deploy: dep-dbes6gfb9u1s73apcsn0
+- Runtime commit: 301068feca67ce4b99b030718814bfb1a50d9f13, existing public main.
+- Initial deployment duration 56.7 s; live at 09:53:14 Europe/Berlin.
+- Public health 200 ok; explicit web restart and subsequent health/persistence verified.
+- No commit/push or additional GitHub repository grant was required.
+
+| Role | Actual configuration |
+|---|---|
+| Render web | APP_ENV=demo; Neon pooled DATABASE_URL stored privately as secret |
+| Temporal on Render | TEMPORAL_ADDRESS empty, namespace default, no TEMPORAL_API_KEY |
+| Inference on Render | AI_ENDPOINT loopback; unreachable there, startup/UI still work |
+| External worker | Owner machine, Neon, Temporal Cloud API-key/TLS, local Ollama gemma4:e4b |
+| Worker inference timeout | AI_TIMEOUT_SECONDS=240 in worker process only |
+| Search/ranking | No SerpApi key; honest baseline, no TabPFN in Docker image |
+
+Never copy the entire worker .env to Render. Keep local inference private; no incoming
+tunnel is needed. Source analysis invoked from Render cannot reach the owner's Ollama.
+The seven verified source analyses were explicitly run locally, storing real results in Neon.
+The local research worker handles database mission dispatch and Temporal execution;
+it is not a new automatic source-analysis queue runner.
+
+Neon client TLS/schema 0006/pgvector verified; no migration needed or run. The loader
+ran twice with its stable key: five synthetic fixtures, plus the earlier synthetic
+persistence smoke and new hosted assessment note, seven sources total.
+All seven sources now have real Gemma analyses; seven proposals, one ACCEPTED.
+
+Hosted walkthrough passed: app/demo warning, pasted-text intake, exact source inspection,
+Catch Up with baseline label, mission creation/queued status while worker stopped,
+real completion after worker restart, Current Brief/history, exact citations and
+source-derived action acceptance/provenance. Web restart retained data and mission/history.
+System status correctly reports database OK, Temporal unconfigured and model unreachable
+from Render. The web continues to accept durable requests without direct worker/model access.
+
+Hosted mission 2180db7b-2418-47b0-acd0-f66f41d9b36a (assessment):
+result c6a0c333-7305-5f1e-a562-9c33bb32ce09, version 1, two validated citations,
+one publication, zero research action candidates. Source-derived actions are real.
+Total 78.434901 s including intentional offline wait, worker execution 43.809049 s,
+synthesis 39.928693 s. Earlier Cloud in-flight-worker recovery also passed; see STATUS.
+
+Timing boundaries: warm public health 0.360 s / post-restart 0.350 s. Browser shell
+observed at 4.156 s; full data-ready rendering was not isolated. Save receipt <=11.719 s
+and baseline visibility <=20.885 s are coarse observation bounds including automation
+gaps. Pages/actions render slowly/incrementally. No p95, idle cold-start, throughput
+or separate hosted-retrieval benchmark. Local-to-Neon retrieval was 0.423 s.
+
+Screenshots: ignored .local-tools/deployment-screenshots/hosted-source.jpg,
+hosted-baseline.jpg, hosted-worker-offline.jpg, hosted-citations.jpg, hosted-actions.jpg,
+render-live.jpg. These are local artifacts, not committed or deployed.
+
+Limits: shared synthetic workspace/no auth; supervised worker/GPU availability; Render
+free idle spin-down; no live SerpApi search or hosted TabPFN; research synthesis omitted
+action_candidates; conjunction-heavy long questions can return no lexical evidence;
+generated support remains UNREVIEWED. No multi-version browser rerun or restore drill.
+Final submission preparation may begin with these facts/limits; no polish was started.
+
+The dated sections below are historical and superseded by this live-deployment record.
+
+---
+
 ## Neon setup verified (2026-10-23)
 
 This supersedes the historical blocked attempt below. neon login succeeded;

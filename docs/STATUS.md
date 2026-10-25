@@ -1,3 +1,169 @@
+# Render deployment and hosted verification completed - 2026-10-25
+
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
+Exact active model variant unavailable. No subagents, runtime changes, commit or push.
+
+Render:
+- Public URL: https://lazyresearch-os-demo.onrender.com/
+- Docker Free web service lazyresearch-os-demo, ID srv-dbes6g7b9u1s73apcs0g.
+- Blueprint exs-dbes6a0ae00c73e683s0 from public Git repository main/render.yaml.
+  Deployment dep-dbes6gfb9u1s73apcsn0, commit 301068feca67ce4b99b030718814bfb1a50d9f13.
+  Existing remote commit used; no new GitHub repository grant or push required.
+- Deployed through owner's signed-in dashboard. Blueprint accepted blank optional
+  SERPAPI_API_KEY and TEMPORAL_ADDRESS; APP_ENV=demo, TEMPORAL_NAMESPACE=default.
+  Neon pooled DATABASE_URL supplied privately as secret. No Temporal API key on web.
+  AI_ENDPOINT is loopback http://127.0.0.1:11434; no model is hosted there or exposed.
+- First deploy 09:52:17 to 09:53:14 Europe/Berlin, dashboard duration 56.7 seconds.
+  Runtime listening 09:53:09, roughly five seconds before live. This is first-deploy
+  timing, not a measured idle cold start. Free-service idle spin-down remains a limit.
+- Public /_stcore/health 200 ok; warm probe 0.360 s, post-restart probe 0.350 s.
+  Initial probe made during provisioning took 19.757 s.
+- Restart service executed; Events shows Service restarted by you at 09:56.
+  Logs confirm replacement instance 47j5h listening 09:57:16, old jf2g7 stopped 09:57:19.
+  New browser session after restart reads the same Neon sources and mission/result.
+
+Hosted walkthrough:
+- App and public synthetic/no-auth warning load successfully.
+- Add Sources saved Synthetic hosted assessment check (synthetic pasted text) into Neon.
+  Source inspection displays extraction Succeeded, exact original note and pending analysis.
+  One new source, seven total; fresh local DB read independently confirmed persistence.
+- Catch Up shows Using baseline ranking while we learn your preferences / Rules baseline,
+  with seven items. Docker image does not contain TabPFN.
+- System status: database schema 0006/pgvector OK; Temporal not configured in web,
+  missions use PostgreSQL dispatch; AI model host unreachable. UI remains usable.
+- Stopped prior task worker PID 12312, submitted question assessment through public UI,
+  topic Synthetic hosted assessment verification. Mission stayed QUEUED in PostgreSQL;
+  UI explained waiting for external worker and unverified worker availability.
+- Restarted local external worker PID 10660 using ignored env: Neon + Temporal Cloud
+  API-key/TLS + loopback Ollama/gemma4:e4b, process-only AI_TIMEOUT_SECONDS=240.
+  It picked up hosted mission 2180db7b-2418-47b0-acd0-f66f41d9b36a and completed it.
+- Result c6a0c333-7305-5f1e-a562-9c33bb32ce09, version 1, two validated citations,
+  exactly one publication. Current Brief/history and exact source quotes inspected
+  in restarted public UI. Claims remain explicitly UNREVIEWED.
+- Mission had zero action candidates despite source-backed tasks. To verify source
+  actions, ran seven explicit source analyses locally against Neon with real Gemma:
+  all seven SUCCEEDED in 87.23 s total, generated seven real proposals.
+  This is supervised local processing, not a new automatic analysis worker.
+- Clicked Accept for synthetic Confirm site assessment in hosted Actions.
+  Fresh DB composition and the fully rendered public UI confirm ACCEPTED; original
+  deadline and exact source provenance were inspected. Immutable proposal is retained.
+  No external action was executed. Public action rendering is slow/incremental.
+
+Performance observations:
+- Hosted mission total 78.434901 s including worker-offline queue wait; worker execution
+  43.809049 s; successful synthesis 39.928693 s.
+- Hosted browser shell observed at 4.156 s. Full data-backed page readiness was not
+  isolated; pages stream incrementally and can take substantially longer.
+- Save-to-visible receipt observed within 11.719 s; baseline label visible within
+  20.885 s after navigation. These are coarse observation upper bounds including
+  automation/tool gaps, not isolated server benchmarks or percentiles.
+- Prior laptop-to-Neon retrieval 0.423 s / Catch Up 0.888 s. No separately instrumented
+  Render retrieval duration. Earlier Cloud mission with in-flight worker restart
+  took 267.550098 s, synthesis success 49.7118 s; its one result remains intact.
+- No idle cold-start, load/concurrency, p95, restore drill or live SerpApi benchmark.
+
+Verification and security:
+- Same unchanged runtime as earlier checks in this task: full pytest 484 passed,
+  3 skipped in 292.69 s; separately explicit local Temporal integration 3 passed
+  in 18.72 s. Ruff check, Ruff format (152 files), mypy (73 files) passed.
+  No unnecessary full-suite repeat for documentation-only updates.
+- Hosted public smoke, real Neon TLS/schema, Cloud connectivity/worker execution,
+  queued offline behavior, model-unreachable UI, Render restart/persistence and
+  stored citation checks passed. No migration needed or run.
+- No .env/secret changes, no public Ollama, no SSRF changes. Keys never printed.
+  Final git diff --check: exit 0. Changed tracked-file scan against actual configured
+  database/key values: zero credential matches, exit 0. Final public health: 200 ok.
+  Git status: only README.md, docs/DEPLOYMENT.md, docs/NEXT.md, docs/STATUS.md modified;
+  no staged files, runtime changes, commit or push.
+- Screenshots in ignored .local-tools/deployment-screenshots:
+  hosted-source.jpg, hosted-baseline.jpg, hosted-worker-offline.jpg,
+  hosted-citations.jpg, hosted-actions.jpg, render-live.jpg. Initial render-signin.jpg is historical, not hosted proof.
+
+Limits:
+- Synthetic shared public owner, no authentication. No private inputs permitted.
+- Owner-run worker/GPU must remain online for new missions. Web cannot reach local
+  inference; its Analyze next source path cannot complete locally hosted Gemma calls.
+  Source processing here was explicitly performed on owner machine.
+- No SerpApi key/live public search; no TabPFN in Render image (honest baseline).
+- Research synthesis omitted action_candidates; source analyses provide real actions.
+- Long question with conjunction-heavy lexical retrieval produced zero evidence in
+  earlier failed mission; single-term smoke works. Failed history remains visible.
+- Generated support not entailment-reviewed, heuristic conflict labels need review.
+- Slow incremental hosted page/action rendering; no performance fix or new release made.
+- No multi-version rerun/change-comparison browser exercise in this hosted check.
+
+Previous dated sections below are historical; this section supersedes the sign-in blocker.
+
+---
+
+# Render deployment attempt and Cloud mission verification - 2026-10-25
+
+Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
+Exact active model variant unavailable. No subagents, commit or push.
+
+Render sign-in is pending the owner. No service/public URL was created. No Render
+API key was present in process environment or ignored .env. The dashboard reached
+GitHub's Render authorization screen; the owner chose to complete sign-in personally.
+No hosted startup, walkthrough, smoke, offline or restart verification is claimed.
+
+Initial working tree clean. HEAD and remote main both
+301068feca67ce4b99b030718814bfb1a50d9f13 (Add Temporal Cloud support).
+Existing deployment source is already pushed; no push is needed for that release.
+No runtime code or blueprint changes were made. Secrets/.env were not modified.
+
+Actual cloud and local verification:
+- Explicit ignored-env scripts/health.py: database ok (schema 0006, pgvector on),
+  Temporal namespace reachable, configured local model available; exit 0.
+  No Neon migration needed or executed.
+- scripts/smoke_postgres.py --env-file .env --verify-only: pooled client TLS/schema,
+  fresh source read, lexical retrieval and Streamlit Catch Up PASS; exit 0.
+- scripts/smoke_temporal.py --env-file .env: Cloud namespace access PASS; exit 0.
+- Explicit-env demo loader twice: five synthetic fixture submissions each time with
+  the same idempotency key. Six total sources including the prior synthetic smoke.
+  No fabricated analyses/feedback/results.
+- Started external scripts/research_worker.py using Neon, Cloud API-key/TLS and local
+  Ollama. No inbound tunnel or public Ollama endpoint.
+- First mission 9764aa56-f71b-4238-8c45-73aa1e216c44: long natural-language question
+  returned no lexical evidence; freeze_evidence failed, no result published.
+  Last persisted stage select_sources, failure WORKFLOW_FAILED. History retained.
+- Mission 04594094-4d08-4f14-ab91-80b0de70b69e, question battery, personal-only:
+  Cloud and database COMPLETED; result 320eff83-3817-5ece-8665-69cc4854f702,
+  version 1, four evidence records, stored citation validation PASS.
+  Zero action candidates/proposals despite a source assessment task. Generated
+  claims remain UNREVIEWED; no stronger factual-quality claim.
+- Default 120-second inference timed out; Ollama log showed 44.12-second cold load.
+  Killed this task's worker PID 29116 during the active mission; restarted PID 12312
+  with process-only AI_TIMEOUT_SECONDS=240. Workflow recovered, exactly one result.
+  Fresh composition after restart reads the same result and COMPLETED/FAILED history.
+  Restarted worker left running at handoff; no always-on availability promise.
+- Laptop-to-cloud timings, NOT Render: retrieval 0.423 s (four candidates),
+  Catch Up 0.888 s (six items, all BASELINE), successful synthesis 49.7118 s,
+  mission 267.550098 s including retries/restart.
+- Ignored screenshot: .local-tools/deployment-screenshots/render-signin.jpg.
+  This shows the sign-in blocker, not a hosted application.
+- Browser capture of existing local app timed out; no local walkthrough substituted.
+
+Checks through rtk and existing .venv:
+- python -m pytest -v: 484 passed, 3 skipped in 292.69 s, exit 0.
+- Separate subprocess TEMPORAL_TEST_ADDRESS=127.0.0.1:7233:
+  python -m pytest tests/integration/test_mission_temporal.py -v:
+  3 passed in 18.72 s, exit 0 (publication/replay/restart/cancellation).
+- python -m ruff check .: All checks passed!, exit 0.
+- python -m ruff format --check .: 152 files already formatted, exit 0.
+- python -m mypy src: no issues in 73 source files, exit 0.
+- git diff --check: passed before and after documentation edits, exit 0.
+- Changed tracked-file credential scan against actual configured key/database values:
+  zero matches, exit 0. Final git status: only README.md, docs/DEPLOYMENT.md,
+  docs/STATUS.md and docs/NEXT.md modified; no staged changes.
+- Public URL smoke, Render health/restart, hosted intake/Catch Up/mission/history/actions,
+  hosted degraded state, hosted timings/screenshots: NOT RUN (Render access pending).
+
+Only README, DEPLOYMENT, STATUS and NEXT documentation updated. Remaining: Render
+sign-in/provisioning, public walkthrough, offline/recovery checks, hosted timings and
+screenshots, actual generated action-review verification. No submission polish.
+
+---
+
 # Temporal Cloud API-key/TLS support - 2026-10-25
 
 Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.

@@ -2,7 +2,7 @@
 
 Give it the things you were too lazy to read, organize, or research. LazyResearch OS is designed to find what matters in saved URLs, documents, and pasted text, combine personal evidence with fresh public research, and show what is worth knowing or doing. Saving should be easy; organization is the system's job.
 
-**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** local Streamlit MVP (Tasks 1A/1B/2A/2B/3A/4A/4B implemented; hosted deployment artifacts prepared, **not yet deployed**).
+**Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** local Streamlit MVP (Tasks 1A/1B/2A/2B/3A/4A/4B implemented; **supervised public Render demo deployed and verified**).
 
 The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Catch Up supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. The local Streamlit application exposes intake, Catch Up, research history/evidence and action review. Exports remain planned; see Deployment below.
 
@@ -91,7 +91,7 @@ accept/complete/dismiss/reopen with provenance and optimistic revisions; they ex
 externally. Migration head is **0006**; PostgreSQL remains canonical.
 
 See [UI walkthrough and limits](docs/UI_WALKTHROUGH.md), [STATUS](docs/STATUS.md) and
-[NEXT](docs/NEXT.md). Deployment, auth, connectors, exports and schedules remain outside this task.
+[NEXT](docs/NEXT.md). Render deployment is verified below; auth, connectors, exports and schedules remain outside this task.
 
 ## PostgreSQL setup
 
@@ -237,14 +237,26 @@ TabPFN checkpoint attribution in [RANKING_BENCHMARK](docs/RANKING_BENCHMARK.md))
 
 **Status:** `Dockerfile`, `render.yaml`, `scripts/serve.py`, `scripts/health.py`, `scripts/load_demo_data.py` and a
 `APP_ENV=demo` banner exist and were verified locally (image build, container health, migrations from empty and from 0005,
-idempotent demo load). **No Render service, hosted database, public URL or hosted Temporal exists yet.** The planned
+idempotent demo load). **Public demo: [lazyresearch-os-demo.onrender.com](https://lazyresearch-os-demo.onrender.com/). Render, Neon and Temporal Cloud are live; hosted workflow and recovery verified.** The planned
 topology is Render web + external PostgreSQL (`DATABASE_URL`, pgvector-capable) + owner-supervised Temporal worker and
 Ollama/Gemma on a local GPU machine. Details, research, limits and commands: [DEPLOYMENT](docs/DEPLOYMENT.md).
 
 Demo limits: synthetic data only, one shared workspace, no authentication; research/analysis work only while the
-supervised worker and model host are online; SerpApi live search is unverified (no key was available); the demo image
+supervised worker and model host are online (source analysis is explicitly run locally); SerpApi live search is unverified (no key was available); the demo image
 omits TabPFN, so Catch Up shows the transparent baseline.
 
 Partner roles (code): Gemma — `infrastructure/ai/ollama.py`; TabPFN — `infrastructure/ranking.py` (optional, local);
 SerpApi — `infrastructure/search.py`; Temporal — `infrastructure/workflows/`; Render — `render.yaml`/`Dockerfile`
-(prepared, undeployed).
+(deployed supervised demo).
+
+Hosted verification on 2026-10-25 passed pasted-text intake, source inspection, baseline
+Catch Up, mission queueing while the worker was offline, real Temporal Cloud/Gemma completion,
+exact citations/history, source-action acceptance and web restart/persistence.
+The hosted assessment mission took 78.43 s including offline queue wait; synthesis 39.93 s.
+Its result had two validated citations and no research action candidates. Seven real local
+source analyses produced seven proposals, one accepted through the public UI.
+The owner-run worker/GPU must remain online; Render cannot call the local model directly.
+Source analysis is explicitly run on the owner machine. Pages/actions render incrementally
+and can be slow on the free service. No live SerpApi search or hosted TabPFN is claimed.
+See [deployment facts and timings](docs/DEPLOYMENT.md), [verification](docs/STATUS.md)
+and [next task](docs/NEXT.md). Final submission polish has not started.
