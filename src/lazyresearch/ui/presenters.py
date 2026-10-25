@@ -81,9 +81,10 @@ def mission_status(status: str, stage: str) -> str:
 
 def ranking_mode(mode: str) -> str:
     return (
-        "Personalized TabPFN ranking active."
+        "Personalized for you · evaluated TabPFN ranking active."
         if mode == "PERSONAL"
-        else "Using baseline ranking while we learn your preferences."
+        else "Learning your preferences · using baseline ranking until explicit feedback "
+        "and evaluation support personalization."
     )
 
 
@@ -163,3 +164,12 @@ def error_message(error: Exception) -> str:
         "The operation could not finish. Check the configured services and "
         "try again. Saved originals are retained."
     )
+
+
+def action_description(title: str, description: str) -> str:
+    """Hide only a repeated display title; keep the stored task/proposal untouched."""
+
+    def normalized(value: str) -> str:
+        return " ".join(value.split()).casefold().rstrip(".")
+
+    return "" if normalized(title) == normalized(description) else description

@@ -1,43 +1,41 @@
-# Next task: final submission preparation (not started)
+# Next: Owner-guided manual product walkthrough and final demo/submission preparation
 
-Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.
-Apply AGENTS.md active-model guard.
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Apply AGENTS.md's model guard.
 
-Actual Render deployment and supervised hosted verification completed 2026-10-25.
-Public URL: https://lazyresearch-os-demo.onrender.com/
-Docker Free service srv-dbes6g7b9u1s73apcs0g, Blueprint exs-dbes6a0ae00c73e683s0,
-runtime commit 301068f (already on public main). No commit/push was performed.
+The UX/onboarding task is implemented locally on checkpoint 0cd9b7e. No commit, push or
+redeployment was performed. Public Render still runs runtime commit 301068f. Review the
+new local navigation and warnings before an explicitly authorized deployment task.
 
-Verified: hosted pasted-text intake/source inspection, Catch Up baseline, queued offline
-mission and completed Cloud/Gemma research, exact citations/history, source-action
-acceptance/provenance, independent web restart with Neon persistence, worker restart.
-Neon TLS/schema 0006/pgvector, seven synthetic sources/real analyses/seven proposals,
-one ACCEPTED. No migration needed. See latest STATUS/DEPLOYMENT for exact evidence/timings.
+Owner walkthrough:
+- Verify full-width Add Sources / What Matters / Research / Actions navigation, selected
+  #00E300 row, keyboard focus/Enter behavior and stable app name/tagline.
+- Confirm examples, explicit source analysis and worker-backed research messaging; inspect
+  opened source/evidence/provenance panels and action edits/status transitions.
+- Review README's simple flow and partner table. Confirm the public demo's shared synthetic,
+  no-authentication, durable Neon storage and no-private-upload warning.
+- Review baseline Learning your preferences versus actual evaluated Personalized for you.
+- Prepare final demo/submission materials using verified behavior and honest limitations.
 
-External worker PID 10660 was left running against Neon, Temporal Cloud API-key/TLS and
-local Ollama, process-only AI_TIMEOUT_SECONDS=240. Check the process before duplicating it.
-Owner machine/GPU must stay awake for new research; this is a supervised demo.
-Render has no Temporal key or inbound route to local Ollama. Web accepts DB dispatch
-without direct Temporal/model access. Explicit source analysis still runs locally.
+See UI_WALKTHROUGH.md for repeatable timing methodology and STATUS.md for exact checks.
+Navigation is faster, but Add Sources/Actions still exceed a second in laptop-to-Neon tests.
+No stale mutable-data cache was added; remaining per-item projections, remote latency,
+manual research refresh, capped lists, Render cold starts and first/populated ranking costs
+remain limits. These changes have not been measured on the hosted deployment.
 
-A separately authorized final submission task can begin. Keep claims factual:
-- No live SerpApi key/search verification; Docker uses baseline, not hosted TabPFN.
-- Research synthesis produced zero action_candidates; source analysis produced real actions.
-- Slow incremental page/action rendering; coarse UI observation timings are not benchmarks.
-- Long lexical questions can return no evidence; initial failed mission remains in history.
-- Generated factual support UNREVIEWED; no multi-version hosted rerun, restore drill,
-  p95/concurrency or free idle-cold-start measurement.
-- Synthetic shared public owner, no authentication/private-data claim.
-- Resolve challenge deadline discrepancy in ROADMAP before relying on submission timing.
+Prior hosted verification remains historical evidence (see DEPLOYMENT.md/STATUS.md): shared
+synthetic Render UI + Neon + owner-run Temporal Cloud/Gemma worker; no hosted TabPFN or live
+SerpApi verification, no authentication or private-data guarantee. The prior worker was left
+running as PID 10660; check actual process state before starting another worker. Its current
+liveness was not reverified by this UX task. Local preview runs separately from that worker.
 
-Next scope, only when authorized: README/demo walkthrough/video/DEV submission materials
-using actual hosted behavior, honest partner-role/availability claims and screenshots.
-Do not begin new product features, performance refactors, release tags, external
-publication, commit or push automatically. If a runtime fix needs deployment, stop before
-any required pushed commit and tell the user exactly what must be pushed.
+Gmail/email connector, exports, schedules and Update available UX are not implemented.
+Do not add these or other product features automatically. Do not commit, push, publish,
+submit, or deploy without the corresponding user instruction.
 
-Tests on unchanged deployed runtime: full pytest 484 passed/3 skipped in 292.69 s;
-separate explicit local Temporal integration 3 passed in 18.72 s; Ruff check/format
-(152 files), mypy (73 files) passed. Hosted smoke/recovery checks passed.
-Final whitespace and credential scans are recorded in STATUS.
-Only README.md, docs/DEPLOYMENT.md, docs/STATUS.md, docs/NEXT.md modified.
+Validation: full suite 490 passed / 3 skipped in 298.30 s; explicit local Temporal 3 passed
+in 18.06 s; final focused UI/presenter/deployment suite 29 passed in 162.20 s; final added
+terminal-period presenter regression suite 13 passed in 0.36 s. Ruff check/format (153 files),
+mypy (73 files), pip check and git diff --check passed. Changed/new credential scan: 11 files,
+zero matches. Full suite collected before the two final evidence/README additions; focused
+verification includes them. See STATUS for exact scope and limits. Local demo preview:
+http://127.0.0.1:8504/ (separate task-owned web process; no research worker was changed).

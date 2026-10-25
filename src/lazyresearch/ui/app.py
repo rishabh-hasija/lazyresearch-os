@@ -14,6 +14,7 @@ from lazyresearch.bootstrap import build_workspace, system_health
 from lazyresearch.domain.actions import ActionStatus, Deadline
 from lazyresearch.ui.presenters import (
     GROUPS,
+    action_description,
     claim_text,
     deadline,
     error_message,
@@ -62,20 +63,26 @@ def source_details(work: Workspace, identity: UUID) -> None:
 def add_sources(work: Workspace) -> None:
     st.header("Add Sources")
     st.write("Save URLs, documents and notes first. Analyze them when you are ready.")
+    st.caption("Email/Gmail is not connected yet. Paste email text or upload a supported export.")
     if st.button("Load sample sources"):
         st.session_state["receipt"] = work.load_demo()
         st.session_state.pop("ranking", None)
     collections = dict(work.reads.collections(work.owner))
     with st.form("add-sources"):
-        urls = st.text_area("URLs — one per line")
+        urls = st.text_area("URLs — one per line", placeholder="https://example.com/battery-guide")
         uploads = st.file_uploader(
             "TXT, Markdown or PDF files",
             type=["txt", "md", "markdown", "pdf"],
             accept_multiple_files=True,
             max_upload_size=max(1, work.intake.limits.max_upload_bytes // (1024 * 1024)),
         )
-        title = st.text_input("Title for pasted text (optional)")
-        text = st.text_area("Pasted text")
+        title = st.text_input(
+            "Title for pasted text (optional)", placeholder="Home battery installer notes"
+        )
+        text = st.text_area(
+            "Pasted text",
+            placeholder="Paste notes, an article excerpt or exported email text here…",
+        )
         collection = st.selectbox(
             "Collection (optional)",
             [None, *collections],
@@ -116,21 +123,31 @@ def add_sources(work: Workspace) -> None:
         else:
             st.success("Analysis ready.")
         st.session_state.pop("ranking", None)
-    sources = work.reads.sources(work.owner)
+    with st.spinner("Loading your saved sources…", show_time=True):
+        sources = work.reads.sources(work.owner)
     if not sources:
         st.info("No saved sources yet. Add your first source above.")
     for source in sources:
-        with st.expander(plain(source.title) + " · " + source.processing_status.capitalize()):
-            source_details(work, source.id)
+        panel = st.expander(
+            plain(source.title) + " · " + source.processing_status.capitalize(),
+            key=f"saved-source-{source.id}",
+            on_change="rerun",
+        )
+        if panel.open:
+            with panel:
+                source_details(work, source.id)
 
 
 def catch_up(work: Workspace) -> None:
-    st.header("Catch Up")
+    st.header("What Matters")
     if notice := st.session_state.pop("feedback-notice", None):
         st.success(notice)
-    interests = st.text_input("Interests (optional, comma-separated exact topics)")
-    if st.button("Refresh Catch Up", type="primary") or "ranking" not in st.session_state:
-        with st.spinner("Preparing Catch Up…"):
+    interests = st.text_input(
+        "Interests (optional, comma-separated exact topics)",
+        placeholder="Home energy, batteries, warranties",
+    )
+    if st.button("Refresh What Matters", type="primary") or "ranking" not in st.session_state:
+        with st.spinner("Finding what matters…"):
             st.session_state["ranking"] = work.catch_up(
                 tuple(t.strip() for t in interests.split(",") if t.strip())
             )
@@ -162,8 +179,10 @@ def catch_up(work: Workspace) -> None:
             elif decision.item.features.has_action:
                 st.info("A source-backed action is available on Actions.")
             st.caption(" · ".join(ranking_reason(r) for r in decision.reasons))
-            with st.expander("Inspect source", key=f"inspect-{decision.id}"):
-                source_details(work, source.id)
+            panel = st.expander("Inspect source", key=f"inspect-{decision.id}", on_change="rerun")
+            if panel.open:
+                with panel:
+                    source_details(work, source.id)
             with st.form(f"feedback-{decision.id}"):
                 correction = st.selectbox(
                     "Your choice",
@@ -244,21 +263,37 @@ def render_result(work: Workspace, result: Any) -> None:
                 plain(claim_text(claim.get("text", claim.get("title", "")), tuple(registry)))
             )
             if "description" in claim:
-                st.markdown(plain(claim["description"]))
+                description = action_description(
+                    claim.get("text", claim.get("title", "")), claim["description"]
+                )
+                if description:
+                    st.markdown(plain(description))
             st.caption("Evidence links validated; factual support is unreviewed.")
-            with st.expander(f"Evidence for {name.replace('_', ' ')} {index}"):
-                for identity in claim["evidence"]:
-                    evidence(work, registry[str(identity)])
+            panel = st.expander(
+                f"Evidence for {name.replace('_', ' ')} {index}",
+                key=f"claim-{result.id}-{name}-{index}",
+                on_change="rerun",
+            )
+            if panel.open:
+                with panel:
+                    for identity in claim["evidence"]:
+                        evidence(work, registry[str(identity)])
     contradictions = p.get("contradictions", {}).get("conflicts", [])
     if contradictions:
         st.subheader("Possible contradictions")
-        for conflict in contradictions:
+        for conflict_index, conflict in enumerate(contradictions):
             st.markdown(plain(conflict["description"]))
             st.caption("Unresolved · heuristic detection")
-            with st.expander("Inspect conflicting evidence"):
-                for key in ("evidence_a", "evidence_b"):
-                    if str(conflict[key]) in registry:
-                        evidence(work, registry[str(conflict[key])])
+            panel = st.expander(
+                "Inspect conflicting evidence",
+                key=f"conflict-{result.id}-{conflict_index}",
+                on_change="rerun",
+            )
+            if panel.open:
+                with panel:
+                    for key in ("evidence_a", "evidence_b"):
+                        if str(conflict[key]) in registry:
+                            evidence(work, registry[str(conflict[key])])
     for key, title in (
         ("open_questions", "Open questions"),
         ("missing_information", "Missing information"),
@@ -316,22 +351,18 @@ def render_result(work: Workspace, result: Any) -> None:
 
 def research(work: Workspace) -> None:
     st.header("Research")
-    if work.research_health and not work.research_health():
-        st.warning(
-            "Temporal access cannot be verified from this web process. "
-            "Requests are saved in PostgreSQL for the external worker; "
-            "its availability is not confirmed here."
-        )
     st.caption(
-        "Requests are saved durably. The separate research service must be "
-        "running; refresh to read actual progress."
+        "Research continues through the separate research worker, even when you leave this page. "
+        "Requests are saved in PostgreSQL; refresh to read actual progress. "
+        "Worker availability is not confirmed here. Use System status to check service access."
     )
     with st.form("new-topic"):
-        title = st.text_input("New topic name")
+        title = st.text_input("New topic name", placeholder="Home battery decision")
         if st.form_submit_button("Create topic"):
             work.mission_commands.create_topic(work.owner, title.strip())
             st.success("Topic created.")
-    topics = work.reads.topics(work.owner)
+    with st.spinner("Opening your research…", show_time=True):
+        topics = work.reads.topics(work.owner)
     if not topics:
         st.info("Create a topic for your first research question.")
         return
@@ -343,7 +374,11 @@ def research(work: Workspace) -> None:
     )
     topic = topics_by_id[topic_id]
     with st.form("mission"):
-        question = st.text_area("Research question", max_chars=500)
+        question = st.text_area(
+            "Research question",
+            max_chars=500,
+            placeholder="Should I buy a 10 kWh home battery now, and what should I verify first?",
+        )
         public = st.checkbox("Allow current public web search", value=False)
         collections = dict(work.reads.collections(work.owner))
         selected_collections = st.multiselect(
@@ -358,10 +393,14 @@ def research(work: Workspace) -> None:
                 "gaps will be disclosed."
             )
         if st.form_submit_button("Start research", type="primary"):
-            work.research(
-                topic.id, question, public=public, collections=tuple(selected_collections)
+            with st.spinner("Saving your research request…", show_time=True):
+                work.research(
+                    topic.id, question, public=public, collections=tuple(selected_collections)
+                )
+            st.success(
+                "Request saved. Research continues through the research worker. "
+                "Refresh to follow progress."
             )
-            st.success("Research request saved. Refresh to follow progress.")
     st.button("Refresh research")
     for mission in work.reads.missions(work.owner, topic.id):
         st.markdown("**" + plain(mission.question) + "**")
@@ -381,7 +420,8 @@ def research(work: Workspace) -> None:
             if st.button("Cancel research", key=f"cancel-{mission.id}"):
                 work.cancel(mission.id)
                 st.rerun()
-    versions = work.reads.results(work.owner, topic.id)
+    with st.spinner("Loading your briefs and history…", show_time=True):
+        versions = work.reads.results(work.owner, topic.id)
     if not versions:
         st.info("No published brief yet. Results appear here after research completes.")
         return
@@ -416,7 +456,8 @@ def actions(work: Workspace) -> None:
         "Review source-backed proposals. Accepting or completing an action "
         "records your decision here."
     )
-    items = work.actions()
+    with st.spinner("Loading your actions…", show_time=True):
+        items = work.actions()
     if not items:
         st.info(
             "No proposed actions yet. Analyze a source with an explicit task "
@@ -424,26 +465,29 @@ def actions(work: Workspace) -> None:
         )
     for item in items:
         st.markdown("**" + plain(item.title) + "**")
-        st.markdown(plain(item.description))
+        if description := action_description(item.title, item.description):
+            st.markdown(plain(description))
         st.caption(
             f"{item.status.value.capitalize()} · {plain(deadline(item))} · "
             f"candidate uncertainty: {item.proposal.uncertainty}"
         )
-        with st.expander("Source provenance", key=f"provenance-{item.id}"):
-            st.caption(
-                "From source analysis"
-                if item.proposal.origin.analysis_id
-                else "From a published research brief"
-            )
-            st.caption("Original proposed title: " + plain(item.proposal.title))
-            st.caption("Original deadline: " + plain(item.proposal.deadline.raw_text or "None"))
-            for locator in item.proposal.evidence:
-                resolved = work.reads.evidence(work.owner, locator)
-                if resolved:
-                    st.markdown("**" + plain(resolved[0]) + "**")
-                    if locator.page:
-                        st.caption(f"Page {locator.page}")
-                    st.markdown(plain(locator.quote))
+        panel = st.expander("Source provenance", key=f"provenance-{item.id}", on_change="rerun")
+        if panel.open:
+            with panel:
+                st.caption(
+                    "From source analysis"
+                    if item.proposal.origin.analysis_id
+                    else "From a published research brief"
+                )
+                st.caption("Original proposed title: " + plain(item.proposal.title))
+                st.caption("Original deadline: " + plain(item.proposal.deadline.raw_text or "None"))
+                for locator in item.proposal.evidence:
+                    resolved = work.reads.evidence(work.owner, locator)
+                    if resolved:
+                        st.markdown("**" + plain(resolved[0]) + "**")
+                        if locator.page:
+                            st.caption(f"Page {locator.page}")
+                        st.markdown(plain(locator.quote))
         targets = {
             ActionStatus.PROPOSED: [
                 ("Accept", ActionStatus.ACCEPTED),
@@ -482,41 +526,88 @@ def actions(work: Workspace) -> None:
                     st.rerun()
 
 
-def main() -> None:
-    st.set_page_config(page_title="LazyResearch OS", page_icon="📚", layout="centered")
-    st.title("LazyResearch OS")
-    st.caption("Save the reading. Find what matters. Keep the evidence.")
-    if os.environ.get("APP_ENV") == "demo":
-        st.warning(
-            "Public demo: synthetic data only, one shared workspace, no authentication. "
-            "Do not enter personal or private content. Research and analysis need the "
-            "separately supervised worker and model host, which may be offline."
-        )
-    st.sidebar.caption("Synthetic/demo workspace · no authentication")
-    with st.sidebar.expander("System status"):
-        if st.button("Check services"):
-            for item in system_health():
-                st.write(f"{'✅' if item.ok else '⚠️'} {item.name}: {item.detail}")
-    section = st.sidebar.radio("Workspace", ["Add Sources", "Catch Up", "Research", "Actions"])
+SECTIONS = {
+    "Add Sources": add_sources,
+    "What Matters": catch_up,
+    "Research": research,
+    "Actions": actions,
+}
+
+NAVIGATION_CSS = """
+<style>
+.st-key-workspace-navigation button {
+    width: 100%; min-height: 3rem; justify-content: flex-start;
+    text-align: left; border: 1px solid transparent;
+}
+.st-key-workspace-navigation button[kind="primary"] {
+    background: #00E300; color: #101810; border-color: #00E300;
+}
+.st-key-workspace-navigation button[kind="primary"] p { color: #101810; }
+.st-key-workspace-navigation button:hover { border-color: #00E300; }
+.st-key-workspace-navigation button[kind="tertiary"]:hover { color: inherit; }
+.st-key-workspace-navigation button:focus-visible {
+    outline: 3px solid #168716; outline-offset: 3px;
+}
+</style>
+"""
+
+
+def select_section(section: str) -> None:
+    st.session_state["workspace-section"] = section
+
+
+@st.fragment(key="workspace-content")
+def workspace_content() -> None:
+    # This fragment owns navigation and page content; the app header stays outside it.
+    section = st.session_state.get("workspace-section", "Add Sources")
+    if section not in SECTIONS:
+        section = "Add Sources"
+        st.session_state["workspace-section"] = section
+    with st.sidebar.container(key="workspace-navigation"):
+        st.caption("Workspace")
+        for label in SECTIONS:
+            st.button(
+                label,
+                key=f"nav-{label}",
+                width="stretch",
+                type="primary" if label == section else "tertiary",
+                on_click=select_section,
+                args=(label,),
+            )
     try:
         if "workspace" not in st.session_state:
             st.session_state["workspace"] = build_workspace()
         work = st.session_state["workspace"]
-        {
-            "Add Sources": add_sources,
-            "Catch Up": catch_up,
-            "Research": research,
-            "Actions": actions,
-        }[section](work)
+        SECTIONS[section](work)
     except Exception as exc:
         st.error(error_message(exc))
-        st.caption(
-            "Check DATABASE_URL, migrations and local services in README. No "
-            "automatic model switch is performed."
-        )
+        st.caption("Check DATABASE_URL, migrations and local services in README.")
         if st.button("Refresh workspace"):
             st.session_state.pop("workspace", None)
+            st.session_state.pop("ranking", None)
             st.rerun()
+
+
+def main() -> None:
+    st.set_page_config(page_title="LazyResearch OS", page_icon="📚", layout="centered")
+    st.html(NAVIGATION_CSS)
+    st.title("LazyResearch OS")
+    st.caption("Save the reading. Find what matters. Keep the evidence.")
+    if os.environ.get("APP_ENV") == "demo":
+        st.warning(
+            "Public demo: one shared synthetic workspace, no authentication. "
+            "Uploaded and saved data persists in Neon (PostgreSQL), not temporary browser storage. "
+            "Anyone with the URL can read and change this workspace. "
+            "Use synthetic/demo material only. Do NOT upload personal or private information. "
+            "Research needs the separately supervised worker and model host, which may be offline."
+        )
+    st.sidebar.caption("Synthetic/demo workspace · no authentication")
+    with st.sidebar.expander("System status"):
+        if st.button("Check services"):
+            with st.spinner("Checking service access…", show_time=True):
+                for item in system_health():
+                    st.write(f"{'✅' if item.ok else '⚠️'} {item.name}: {item.detail}")
+    workspace_content()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,66 @@ Give it the things you were too lazy to read, organize, or research. LazyResearc
 
 **Hacktoberfest Week 3 theme:** Slow and Steady. **Current phase:** local Streamlit MVP (Tasks 1A/1B/2A/2B/3A/4A/4B implemented; **supervised public Render demo deployed and verified**).
 
-The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. Catch Up supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. The local Streamlit application exposes intake, Catch Up, research history/evidence and action review. Exports remain planned; see Deployment below.
+The pure domain foundation, persistent intake, configurable source analysis, and scoped personal retrieval are implemented for URLs, pasted text, TXT, Markdown, and text PDFs. Originals commit before extraction; immutable analyses and retrieval chunks retain exact extraction citations. Lexical search works independently of embeddings; optional local qwen3 embeddings and pgvector support semantic/hybrid retrieval. Research Missions combine scoped evidence, optional public discovery, Gemma synthesis and immutable publication through Temporal. What Matters supplies a transparent baseline and optional local TabPFN with explicit-feedback/evaluation gates. The local Streamlit application exposes intake, What Matters, research history/evidence and action review. Exports remain planned; see Deployment below.
+
+## Start here: what goes in, what happens, what comes out
+
+**Public demo: one shared synthetic workspace, no authentication.** Anyone with the URL
+can read and change it. Uploaded/saved data **persists in Neon (PostgreSQL)**; it is **not
+temporary browser storage**. Do **NOT** upload personal/private information. Use synthetic/demo
+material only. This demo makes no production privacy guarantee.
+
+### The simple version
+
+```text
+URLs · PDFs with text · TXT/Markdown · pasted notes or text
+                         ↓
+Save the original → extract readable text → Gemma analyzes it
+                         ↓
+Find saved evidence: exact words + optional meaning-based search
+                         ↓
+What Matters → ask a research question → worker researches it durably
+                         ↓
+Optional current public-web evidence → Gemma writes a cited brief
+                         ↓
+Review evidence, previous versions, What Changed and source-backed actions
+```
+
+Your originals stay separate from generated analysis. PostgreSQL is the durable source of
+truth (Neon hosts the current demo), including saved originals, analysis, research versions,
+actions, explicit preference feedback and evidence. Refreshing/closing the browser does not
+remove saved data. A separate supervised research worker must be online to finish missions;
+source analysis is an explicit operation and is not an automatic background source runner.
+
+What Matters prioritizes saved material with an honest rules baseline. As you give enough
+explicit feedback, TabPFN can personalize relevance **only after evaluation supports it**.
+The UI says **Learning your preferences** for baseline mode and **Personalized for you** only
+for actual evaluated personal mode. Generic samples do not count as personal history.
+
+**Email/Gmail connection is not implemented.** For now, paste email text or upload supported
+exported PDF/TXT/Markdown content (synthetic content only in the public demo). Future Gmail
+integration should select labels, senders or explicit searches, with preview and revocation,
+rather than ingesting the whole mailbox by default.
+
+### The technical mapping
+
+| Stage / partner | Role and current limits |
+|---|---|
+| URL/file/text intake | Saves original bytes separately from extraction and generated output; supports URLs, text PDFs, TXT/Markdown and pasted text. No OCR or email connector. |
+| Gemma via Ollama | Analyzes saved sources and synthesizes the final cited research brief on the supervised model host. Originals are never overwritten. Render cannot reach the owner's local model directly. |
+| qwen embeddings + pgvector | Optional semantic retrieval over compatible indexed chunks; disabled by default. Missing embeddings retain lexical retrieval. |
+| PostgreSQL lexical search | Exact-lexeme retrieval over saved text, independent of embeddings; all query terms must match. Long natural-language questions can yield no evidence. |
+| TabPFN | Optional relevance prediction after sufficient explicit feedback and held-out evaluation; baseline remains the fallback. The current Render image uses baseline ranking. |
+| Temporal / research worker | Durable, recoverable mission execution and immutable cited result publication; the web queues requests in PostgreSQL. A live supervised external worker is required. |
+| SerpApi | Optional current public-web discovery with explicit per-mission permission. No live search/key was verified in the current hosted demo. |
+| PostgreSQL / Neon | Canonical durable storage configured by provider-neutral DATABASE_URL: originals, separate analysis, research versions, evidence, actions and feedback. Neon is the current host. |
+| Render / Streamlit | Public interface for Add Sources, What Matters, Research and Actions; one shared synthetic workspace with no authentication. |
+| Outputs | Prioritized What Matters, cited research briefs, exact evidence/history/What Changed, and source-backed actions for human review. No external action execution or exports. |
+
+For a first walkthrough: save a synthetic note, inspect it under Add Sources, review What
+Matters, create a Research topic, and ask for example: "Should I buy a 10 kWh home battery now,
+and what should I verify first?" Inspect the brief's evidence and review any Actions. The
+question is an input example, not a promise of sufficient evidence or a verified recommendation.
 
 Development uses **Python 3.12**, Streamlit **1.66.1**, SQLAlchemy **2.0.x**, Alembic, psycopg 3, pypdf 6, Pydantic **v2**, pytest, Ruff, and strict mypy. PostgreSQL 17 is the development baseline (tested on **17.11**); any compatible provider can supply DATABASE_URL. The domain remains standard-library-only. The local demo uses synthetic content.
 
@@ -52,7 +111,7 @@ model/research services. Open [the local app](http://127.0.0.1:8501). This is no
 one-command machine setup. Restart the app after code/configuration changes for a clean build;
 cached Python/service objects can survive a development hot reload or browser refresh.
 
-The four sections are Add Sources, Catch Up, Research and Actions. **Load sample sources** is an
+The four sections are Add Sources, What Matters, Research and Actions. **Load sample sources** is an
 optional, explicit, idempotent intake of two synthetic battery texts. It creates no fake analyses,
 feedback or research results. The default fixed owner is a shared synthetic/demo workspace;
 `UI_OWNER_ID` may select a separately scoped UUID. There is no authentication or private multi-user
@@ -84,7 +143,7 @@ local development detail, not an application path requirement or production setu
 must explicitly provision a supported Temporal runtime; see [official CLI guidance](https://docs.temporal.io/cli).
 
 Missing SerpApi credentials are visible in Research; personal-only requests remain usable. Queued
-requests wait for the research service. Refresh reads actual progress/results. Catch Up labels the
+requests wait for the research service. Refresh reads actual progress/results. What Matters labels the
 baseline honestly when TabPFN is absent or ineligible; `TABPFN_MODEL_PATH` can explicitly opt into
 the existing local adapter. No demo seeds count as personal history. Actions support review/edit/
 accept/complete/dismiss/reopen with provenance and optimistic revisions; they execute nothing
@@ -156,7 +215,7 @@ EXTRACT/ANALYZE claims use short transactions, SKIP LOCKED, expiry, and fresh to
 
 Intended technologies: a modular monolith; configurable Gemma processing (initial candidate Gemma 4 E4B); TabPFN relevance prediction; SerpApi public search; Temporal durable missions; Render public hosting; provider-neutral PostgreSQL with optional pgvector. Tinker is an optional later experiment.
 
-Start with [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Data model](docs/DATA_MODEL.md), [Partners](docs/PARTNERS.md), and [Roadmap](docs/ROADMAP.md). [Status](docs/STATUS.md) records verified results; [Next](docs/NEXT.md) defines Task 3A for the next user-authorized instruction. [Agent instructions](AGENTS.md) govern future work.
+Start with [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), [Data model](docs/DATA_MODEL.md), [Partners](docs/PARTNERS.md), and [Roadmap](docs/ROADMAP.md). [Status](docs/STATUS.md) records verified results; [Next](docs/NEXT.md) records the owner-guided walkthrough and final demo/submission preparation. [Agent instructions](AGENTS.md) govern future work.
 
 ## Personal retrieval
 
@@ -207,7 +266,7 @@ Claims remain UNREVIEWED: exact citation validation is not factual entailment. C
 
 For optional local runtime tests, set TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 before pytest; without it, only the three live Temporal tests skip. Ordinary deterministic mission tests use fake search/synthesis and real PostgreSQL. `scripts/smoke_research.py` separately runs real Gemma + Temporal + PostgreSQL on synthetic sources and one bounded SerpApi search/fetch only if a key is configured. It does not load `.env` implicitly. [STATUS](docs/STATUS.md) records actual validation; [NEXT](docs/NEXT.md) describes Task 4B, which requires a new instruction.
 
-## Catch Up ranking and feedback (Task 4A)
+## What Matters ranking and feedback (Task 4A)
 
 After explicit Alembic upgrade to head (0005), `build_catch_up(settings)` returns a baseline-first
 application service. Call `.rank(owner_id, aware_utc_cutoff, interests=("Home Energy",), limit=50)`.
@@ -243,14 +302,14 @@ Ollama/Gemma on a local GPU machine. Details, research, limits and commands: [DE
 
 Demo limits: synthetic data only, one shared workspace, no authentication; research/analysis work only while the
 supervised worker and model host are online (source analysis is explicitly run locally); SerpApi live search is unverified (no key was available); the demo image
-omits TabPFN, so Catch Up shows the transparent baseline.
+omits TabPFN, so What Matters shows the transparent baseline.
 
 Partner roles (code): Gemma — `infrastructure/ai/ollama.py`; TabPFN — `infrastructure/ranking.py` (optional, local);
 SerpApi — `infrastructure/search.py`; Temporal — `infrastructure/workflows/`; Render — `render.yaml`/`Dockerfile`
 (deployed supervised demo).
 
 Hosted verification on 2026-10-25 passed pasted-text intake, source inspection, baseline
-Catch Up, mission queueing while the worker was offline, real Temporal Cloud/Gemma completion,
+What Matters, mission queueing while the worker was offline, real Temporal Cloud/Gemma completion,
 exact citations/history, source-action acceptance and web restart/persistence.
 The hosted assessment mission took 78.43 s including offline queue wait; synthesis 39.93 s.
 Its result had two validated citations and no research action candidates. Seven real local

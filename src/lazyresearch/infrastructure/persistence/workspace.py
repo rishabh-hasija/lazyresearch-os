@@ -5,7 +5,7 @@ from datetime import date, datetime
 from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from lazyresearch.application.mission_models import MissionEvidence
 from lazyresearch.application.workspace_models import MissionView, ResultView, SourceView
@@ -148,20 +148,51 @@ class PostgreSQLWorkspaceReads(DatabaseAdapter):
     def evidence(self, owner: OwnerId, locator: SourceEvidence) -> tuple[str, str | None] | None:
         if locator.owner_id != owner:
             return None
-        source = self.source(owner, locator.content_id)
-        if source is None:
-            return None
+        # Evidence needs the exact historical extraction, title and current visibility;
+        # loading the source's newest analysis here multiplies every citation read.
+        filename = (
+            select(CaptureRow.submitted_filename)
+            .where(CaptureRow.owner_id == owner, CaptureRow.content_id == locator.content_id)
+            .order_by(CaptureRow.recorded_at)
+            .limit(1)
+            .scalar_subquery()
+        )
         with self.transaction() as s:
-            extraction = s.scalar(
-                select(ExtractionRow).where(
-                    ExtractionRow.owner_id == owner,
-                    ExtractionRow.content_id == locator.content_id,
+            row = s.execute(
+                select(
+                    func.coalesce(
+                        func.nullif(ContentRow.original_title, ""),
+                        func.nullif(ContentRow.original_url, ""),
+                        func.nullif(filename, ""),
+                        "Untitled source",
+                    ),
+                    ContentRow.original_url,
+                    ExtractionRow.text,
+                    RetrievalStateRow.visibility,
+                )
+                .join(
+                    ExtractionRow,
+                    (ExtractionRow.owner_id == ContentRow.owner_id)
+                    & (ExtractionRow.content_id == ContentRow.id),
+                )
+                .outerjoin(
+                    RetrievalStateRow,
+                    (RetrievalStateRow.owner_id == ContentRow.owner_id)
+                    & (RetrievalStateRow.content_id == ContentRow.id),
+                )
+                .where(
+                    ContentRow.owner_id == owner,
+                    ContentRow.id == locator.content_id,
                     ExtractionRow.id == locator.extraction_id,
                 )
-            )
-            if extraction is None or extraction.text[locator.start : locator.end] != locator.quote:
+            ).one_or_none()
+            if (
+                row is None
+                or row[3] in {"DELETED", "DELETION_PENDING"}
+                or row[2][locator.start : locator.end] != locator.quote
+            ):
                 return None
-        return source.title, source.url
+            return row[0], row[1]
 
     def topics(self, owner: OwnerId) -> tuple[ResearchTopic, ...]:
         with self.transaction() as s:

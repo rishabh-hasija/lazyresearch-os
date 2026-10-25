@@ -38,3 +38,16 @@ def test_health_failures_are_sanitized() -> None:
         )
     )
     assert not ai.ok and "127.0.0.1" not in ai.detail
+
+
+def test_readme_explains_partner_flow_and_shared_persistent_demo() -> None:
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    onboarding = text.split("## Start here:", 1)[1].split("Development uses", 1)[0]
+    assert "### The simple version" in onboarding and "### The technical mapping" in onboarding
+    for role in ("Gemma", "qwen", "PostgreSQL lexical", "TabPFN", "Temporal", "SerpApi", "Neon"):
+        assert role in onboarding
+    assert "Email/Gmail connection is not implemented" in onboarding
+    assert "no authentication" in onboarding and "persists in Neon (PostgreSQL)" in onboarding
+    assert "NOT" in onboarding and "personal/private" in onboarding
+    assert "Learning your preferences" in onboarding and "Personalized for you" in onboarding
+    assert "Catch Up" not in text

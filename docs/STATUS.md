@@ -1,3 +1,90 @@
+# UX/onboarding task completed locally — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant not
+reliably available; continued under AGENTS.md. No delegation, commit, push or deployment.
+Read repository guidance/docs and attached owner requirements; starting git status clean,
+HEAD 0cd9b7e (prior commits 301068f, 2c3ffa7, 2f65b49, bb5b48d).
+
+Implemented:
+- Full-width native sidebar navigation buttons for Add Sources, What Matters, Research,
+  Actions. Callback/session selection; selected row primary with scoped #00E300 background,
+  #101810 text, hover border and focus-visible outline. No radio circles. Renamed visible
+  Catch Up labels in UI/README/walkthrough; internal/domain names remain.
+- Named Streamlit fragment owns sidebar navigation/page content. Single header/tagline/demo
+  warning are outside it. Workspace/engine/pool/optional ranker still created once per session.
+  No shared resource/data cache, mutable DTO cache or new dependency. Refresh workspace
+  clears ranking display state as well as workspace; config changes need a clean restart.
+- Measured baseline before changes; source/evidence/provenance panels now load only when
+  tracked expanders open. Evidence query selects exact historical extraction/title/current
+  visibility in one statement rather than loading current source analysis repeatedly.
+  Scope, quote, missing-extraction and deletion checks preserved. No schema/port/domain or
+  partner architecture change. Fresh mutable data and evidence reads remain authoritative.
+- Research no longer probes Temporal during navigation. System status remains explicitly
+  requested; research explains durable PostgreSQL queueing and the external worker.
+  Contextual delayed loading feedback added to real reads/submission. No artificial delays.
+- Useful input examples; honest Learning your preferences / Personalized for you based on
+  actual ranking mode. Display-only action title/description deduplication (including brief
+  proposals); immutable original proposal and user notes stay separate.
+- README explains input → extraction/analysis → retrieval → durable research → cited outputs,
+  both as a simple diagram/description and partner table. UI/README explain shared synthetic
+  workspace, no authentication, durable Neon storage rather than browser storage, anyone
+  with the URL can read/change it, and no personal/private uploads. Gmail not implemented;
+  supported email text/exports and selective future integration documented. No Update available.
+
+Performance (read-only AppTest/laptop → existing synthetic Neon workspace, 2 cycles):
+
+| Destination | Before seconds | After seconds | SQL before → after |
+|---|---|---|---|
+| What Matters (empty cached ranking) | 0.054 / 0.052 | 0.133 / 0.091 | 0 → 0 |
+| Research | 2.573 / 2.557 | 0.433 / 0.409 | 117 → 9 |
+| Actions | 4.498 / 4.208 | 1.744 / 1.566 | 214 → 57 |
+| Add Sources | 2.391 / 2.315 | 1.399 / 1.221 | 142 → 72 |
+
+Repeatable helper scripts/measure_ui_navigation.py uses explicit env-file loading, a single
+workspace and an empty ranking snapshot so it writes no observations. Details/methodology in
+UI_WALKTHROUGH.md. Excludes initial imports/bootstrap, first/populated ranking, browser paint,
+Render cold starts/concurrency/p95. Add Sources/Actions remain over a second; effectively
+immediate navigation is not achieved for every page. Remaining per-item projections and remote
+latency are real limits, not hidden behind stale mutable caches. Hosted changes not measured.
+
+Validation actually run (all commands prefixed rtk proxy .venv/Scripts/python.exe):
+- `-m pytest -q`: 490 passed, 3 skipped in 298.30 s, exit 0. Full suite collected before the
+  final two regression additions; those are included in the subsequent focused verification.
+- Explicit `TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 -m pytest tests/integration/test_mission_temporal.py -q`:
+  3 passed in 18.06 s, exit 0, against the existing local Temporal runtime. No duplicate server.
+- New evidence single-query/scope/quote/deletion regression plus README flow regression:
+  2 passed in 3.66 s, exit 0.
+- Final focused UI/presenters/deployment checks: 29 passed in 162.20 s, exit 0.
+  Final terminal-period deduplication regression/presenter run: 13 passed in 0.36 s, exit 0.
+- Ruff check: All checks passed, exit 0; Ruff format --check: 153 files already formatted,
+  exit 0; mypy src: no issues in 73 source files, exit 0; pip check: no broken requirements,
+  exit 0. Import boundaries are included in the full suite.
+- Browser on separate local preview port 8504, APP_ENV=demo, reads synthetic Neon data:
+  verified green selected full row, stable single header, Research content/question example,
+  real populated What Matters baseline wording, and explicit Neon/privacy warning. Selected
+  computed background rgb(0,227,0), text rgb(16,24,16), height 48px; Tab focuses Actions with
+  solid outline and Enter navigates. No brittle CSS pixel assertions added to tests.
+- Prior focused UI/presenter suite: 21 passed in 26.86 s; expanded UI suite: 11 passed in
+  30.63 s. Source upload/processing, feedback, actions, optimistic conflict and history remain
+  covered with real isolated PostgreSQL schemas. No real AI/search calls in automated checks.
+
+Remaining: owner-guided manual product walkthrough and final demo/submission preparation.
+Public Render remains runtime commit 301068f; new UX is local only. No Gmail, new backend
+architecture, external action execution, automatic refresh, release or submission added.
+No hosted SerpApi/TabPFN verification, no private-data guarantee. The unchanged deployment
+limits below remain historical evidence. The read-only benchmark created no observations;
+browser opening What Matters exercised its existing ranking-observation persistence normally.
+
+Git: all changes unstaged; no commit/push. `rtk git diff --check`: exit 0. Changed/new-file
+scan against actual configured sensitive env values/database passwords: 11 files, zero matches,
+exit 0 (no values printed). Modified README.md, docs/{UI_WALKTHROUGH,STATUS,NEXT}.md,
+src/lazyresearch/ui/{app,presenters}.py, infrastructure/persistence/workspace.py,
+tests/integration/test_workspace.py, tests/{test_deployment,test_presenters}.py;
+new scripts/measure_ui_navigation.py. Local demo preview remains at http://127.0.0.1:8504/;
+only this task's preview process was restarted, no research worker changes.
+
+---
+
 # Render deployment and hosted verification completed - 2026-10-25
 
 Recommended: Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5.

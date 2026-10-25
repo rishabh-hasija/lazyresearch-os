@@ -1,3 +1,78 @@
+# UX/onboarding update — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active model variant unavailable.
+These changes are local and uncommitted; the public deployment still runs the earlier commit.
+
+Navigation uses four native full-width Streamlit buttons in the keyed sidebar container
+`workspace-navigation`: Add Sources, What Matters, Research, Actions. A callback updates
+`workspace-section`; only the selected button is primary. Scoped CSS sets the entire selected
+row to exactly #00E300 with #101810 text, a large target, hover border and visible keyboard
+focus outline. There are no radio circles. Navigation and page rendering share a named
+`workspace-content` fragment; the single app name/tagline and demo warning sit outside it.
+Native fragment navigation preserves the header rather than rerendering it on every switch.
+
+Workspace/bootstrap, SQLAlchemy engine/pool and optional ranking model remain session-owned,
+constructed once per session. A configuration change requires a clean session/process restart.
+Source-processing provider initialization still happens only on explicit analysis; research
+providers run in the worker. No cross-session data/resource cache was added. Existing ranking
+decisions remain session display state, invalidated on intake/processing and explicitly refreshed.
+Mutable sources, tasks, topics, mission progress and results are reread; exact evidence and
+current deletion visibility are checked on every read, including when a lazy panel opens.
+
+Collapsed source, citation, contradiction and action-provenance expanders use Streamlit's
+tracked `on_change="rerun"` / `.open` API. Their detail reads run only when opened. Evidence
+validation now selects exact extraction/title/current visibility directly, avoiding full source
+and latest-analysis loading for each citation. Ownership, quote matching and unavailable/deleted
+source behavior are retained. No schema, domain policy or partner architecture changed.
+
+Contextual delayed Streamlit spinners cover saved sources, ranking, research/history, actions,
+service checks and research submission. There are no artificial sleeps. Research explicitly
+continues through the separate worker after leaving the page. System status checks remain
+explicit; opening Research no longer performs a Temporal network probe.
+
+Public-demo UI and README explain that this is a shared synthetic workspace with no auth;
+anyone with the URL can read/change it. Saved/uploaded data persists in Neon/PostgreSQL, not
+browser storage. Never upload personal/private information. Email/Gmail is not implemented;
+paste synthetic email text or upload supported exports. Future Gmail should be selective.
+Inputs include examples; the README explains the complete flow both simply and technically.
+Baseline says Learning your preferences; only actual PERSONAL mode says Personalized for you.
+Repeated action title/description text is hidden for display only; stored proposals/tasks/evidence
+are unchanged. No Update available feature was implemented.
+
+## Navigation measurements
+
+Read-only `scripts/measure_ui_navigation.py --env-file .env --rounds 2` measured AppTest rendering
+against the configured seven-source synthetic Neon workspace. Same laptop, session workspace,
+existing saved analyses, one published brief, seven source actions; closed detail panels.
+Cycle: Add Sources → What Matters → Research → Actions → Add Sources, repeated twice.
+What Matters uses an explicitly empty repeat-visit decision snapshot to avoid writing ranking
+observations during measurement; these numbers do not measure first ranking or populated ranking.
+SQL counts include projection reads and pool checks; bootstrap/import/initial load are excluded.
+
+| Destination | Before seconds (two samples) | After seconds (two samples) | SQL before → after |
+|---|---|---|---|
+| What Matters | 0.054 / 0.052 | 0.133 / 0.091 | 0 → 0 |
+| Research | 2.573 / 2.557 | 0.433 / 0.409 | 117 → 9 |
+| Actions | 4.498 / 4.208 | 1.744 / 1.566 | 214 → 57 |
+| Add Sources | 2.391 / 2.315 | 1.399 / 1.221 | 142 → 72 |
+
+These are server-side samples, not browser paint, percentiles, concurrent load, hosted Render
+measurements or cold-start benchmarks. Add Sources and Actions still take over a second in
+this environment; effectively immediate navigation is not achieved for every page. Remaining
+per-item projections and shared remote-database latency are visible limits, especially at scale.
+No stale mutable data cache was introduced to conceal that work. Refresh/mission progress are
+manual; edits and state transitions reread fresh records. The existing source/history caps remain.
+
+## Manual checks for the owner
+
+Switch all four rows; confirm a single stable header and the bright green full selected row.
+Use Tab/Enter and verify focus visibility. Open a saved source, brief citation and action
+provenance, then verify the quote against the saved text. Refresh research after the worker
+finishes, select an older version and check Current Brief. Review baseline wording, all input
+examples, action edits/status controls and the Neon persistence warning. Use synthetic data.
+
+---
+
 # Task 4B application and verification
 
 Implemented 2026-10-22, Europe/Berlin, on clean checkpoint `9b4a68d`.
@@ -5,7 +80,7 @@ Recommended GPT-6.1 Sol / Medium; Claude Sonnet 5 alternative. User confirmed GP
 
 ## Structure and boundaries
 
-`ui/app.py` is a single Streamlit entry point with Add Sources, Catch Up, Research and Actions
+`ui/app.py` is a single Streamlit entry point with Add Sources, What Matters, Research and Actions
 selected by sidebar navigation. `ui/presenters.py` maps inputs, statuses, class names, errors
 and evidence labels, escaping untrusted Markdown. No React, FastAPI, ORM, partner SDK, retrieval,
 synthesis, ranking or action transition implementation lives in UI. Bootstrap alone composes
@@ -38,13 +113,12 @@ complete, dismiss, reopen and edits use domain methods. No external execution ad
   creation/management UI is not added. The optional sample button uses a stable owner/request key
   and two clearly synthetic battery texts. Repeating it does not multiply captures or invent
   analyses/results/feedback. Session state contains display/cache data; PostgreSQL remains canonical.
-- Catch Up uses the four backend classes with human labels and explicit BASELINE versus PERSONAL
+- What Matters uses the four backend classes with human labels and explicit BASELINE versus PERSONAL
   language. Ranking is refreshed deliberately and cached per browser session across forms. Explicit
   feedback persists through the existing event system; stale corrections fail. A reviewed-item
   re-read obtains the backend's override class and deadline safeguard. IGNORE never archives.
 - Research creates/selects topics, freezes public permission and optional collections, explicitly
-  indexes current sources, and queues durable missions for the existing separate worker. A bounded
-  service-health probe reports an unreachable server without substituting in-memory execution.
+  indexes current sources, and queues durable missions for the existing separate worker. Service health is checked explicitly through System status; navigation does not probe Temporal.
   Refresh reads actual stages. Cancellation first persists the existing terminal fence; an in-flight
   bounded provider call may continue, but cannot publish after cancellation.
 - Briefs show actual structured sections, partial-coverage notices, exact saved quotes, titles,
@@ -81,7 +155,7 @@ The following were visibly checked:
 4. Multi-file chooser upload of a synthetic TXT and a valid two-page text PDF; both saved/extracted.
 5. Source status and original text, plus real Gemma summary/topics and a source-backed action with
    normalized 2026-11-07 deadline.
-6. Catch Up baseline label, groups, pending-analysis reasons and prominent deadline warning.
+6. What Matters baseline label, groups, pending-analysis reasons and prominent deadline warning.
 7. Explicit feedback submission; the final build displayed a success notice and moved the TXT
    item to Useful later with Your explicit choice. Canonical feedback survives a refreshed session.
 8. Topic creation and a personal-only mission, with public search visibly unchecked and missing-key

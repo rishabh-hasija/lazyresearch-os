@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -6,7 +7,7 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import update
+from sqlalchemy import event, update
 from sqlalchemy.exc import DBAPIError
 from streamlit.testing.v1 import AppTest
 
@@ -37,7 +38,9 @@ def work(db):
     instance.processing = lambda: ProcessPendingContent(
         SQLAlchemyAnalysisStore(db), FakeProcessor(deadline=None), AnalysisConfig()
     )
-    instance.research_health = lambda: False
+    instance.research_health = lambda: (_ for _ in ()).throw(
+        AssertionError("automatic health probe")
+    )
     return instance
 
 
@@ -45,7 +48,7 @@ def app(work, section="Add Sources"):
     at = AppTest.from_file(str(APP), default_timeout=15)
     at.session_state["workspace"] = work
     at.run()
-    at.sidebar.radio[0].set_value(section).run()
+    next(b for b in at.sidebar.button if b.label == section).click().run()
     assert not at.exception and not at.error
     return at
 
@@ -177,19 +180,19 @@ def test_streamlit_empty_pages_and_bad_source_sibling(work):
     at.text_area[0].set_value("file:///not-allowed")
     at.text_area[1].set_value("Battery apply by 2026-11-07.")
     at.text_input[0].set_value("A saved note")
-    at.button[1].click().run()
+    next(b for b in at.button if b.label == "Save sources").click().run()
     assert not at.exception and not at.error
     assert len(work.reads.sources(work.owner)) == 1
     assert work.intake.store.batch(work.owner, at.session_state["receipt"].batch_id).failed == 1
-    at.sidebar.radio[0].set_value("Catch Up").run()
+    next(b for b in at.sidebar.button if b.label == "What Matters").click().run()
     assert any("baseline" in info.value for info in at.info)
     assert not at.exception and not at.error
     at.selectbox[0].set_value("ACT")
     next(button for button in at.button if button.label == "Save feedback").click().run()
     assert len(work.ranking.store.history(work.owner, datetime.now(UTC))) == 1
-    at.sidebar.radio[0].set_value("Research").run()
+    next(b for b in at.sidebar.button if b.label == "Research").click().run()
     assert any("Create a topic" in info.value for info in at.info)
-    at.sidebar.radio[0].set_value("Actions").run()
+    next(b for b in at.sidebar.button if b.label == "Actions").click().run()
     assert any("No proposed actions" in info.value for info in at.info)
 
 
@@ -205,7 +208,7 @@ def test_streamlit_upload_processing_and_action_buttons(work):
     assert not at.exception and not at.error and len(work.reads.sources(work.owner)) == 2
     next(button for button in at.button if button.label == "Analyze next source").click().run()
     assert not at.exception and not at.error
-    at.sidebar.radio[0].set_value("Actions").run()
+    next(b for b in at.sidebar.button if b.label == "Actions").click().run()
     next(button for button in at.button if button.label == "Accept").click().run()
     next(button for button in at.button if button.label == "Complete").click().run()
     next(button for button in at.button if button.label == "Reopen").click().run()
@@ -243,3 +246,67 @@ def test_partial_brief_warns_and_retains_exact_source_evidence(db, work):
     assert any("Partial coverage" in w.value for w in at.warning)
     assert any("Synthetic battery" in m.value for m in at.markdown)
     assert not at.error and not at.exception
+
+
+def test_navigation_selected_state_persistent_header_and_public_warning(work, monkeypatch):
+    monkeypatch.setenv("APP_ENV", "demo")
+    at = app(work)
+    for section in ("What Matters", "Research", "Actions", "Add Sources"):
+        next(b for b in at.sidebar.button if b.label == section).click().run()
+        assert not at.exception and not at.error
+        assert at.session_state["workspace"] is work
+        assert at.session_state["workspace-section"] == section
+        assert len([t for t in at.title if t.value == "LazyResearch OS"]) == 1
+        buttons = [
+            b
+            for b in at.sidebar.button
+            if b.label in {"Add Sources", "What Matters", "Research", "Actions"}
+        ]
+        assert len(buttons) == 4
+        assert [b.label for b in buttons if b.proto.type == "primary"] == [section]
+        assert not at.sidebar.radio
+        assert at.header[0].value == section
+        assert all("Catch Up" not in node.value for node in at.header)
+        warning = " ".join(node.value for node in at.warning)
+        assert "shared synthetic workspace" in warning and "no authentication" in warning
+        assert "persists in Neon (PostgreSQL), not temporary browser storage" in warning
+        assert "Do NOT upload personal or private information" in warning
+
+
+def test_closed_details_are_lazy_and_open_source_reads_fresh(work, monkeypatch):
+    receipt = work.load_demo()
+    at = app(work)
+    details = [panel for panel in at.expander if panel.label.startswith("Synthetic battery")]
+    assert len(details) == 2
+    assert not any("Extraction:" in node.value for node in at.markdown)
+    identity = receipt.entries[0].content_id
+    at.session_state[f"saved-source-{identity}"] = True
+    at.run()
+    assert not at.exception and not at.error
+    assert any("Extraction:" in node.value for node in at.markdown)
+
+
+def test_evidence_read_is_one_query_with_scope_quote_and_deletion_checks(db, work):
+    work.load_demo()
+    work.process()
+    locator = work.actions()[0].proposal.evidence[0]
+    source = work.reads.source(work.owner, locator.content_id)
+    statements = []
+
+    def count(*args):
+        statements.append(args[2])
+
+    event.listen(db, "before_cursor_execute", count)
+    try:
+        assert work.reads.evidence(work.owner, locator) == (source.title, source.url)
+        assert len(statements) == 1
+    finally:
+        event.remove(db, "before_cursor_execute", count)
+    assert work.reads.evidence(OwnerId(uuid4()), locator) is None
+    assert work.reads.evidence(work.owner, replace(locator, quote="X" * len(locator.quote))) is None
+    assert work.reads.evidence(work.owner, replace(locator, extraction_id=uuid4())) is None
+    retrieval = build_retrieval(Settings("postgresql://unused"), engine=db)
+    work.index(work.owner)
+    for visibility in ("DELETION_PENDING", "DELETED"):
+        retrieval.store.set_visibility(work.owner, locator.content_id, visibility)
+        assert work.reads.evidence(work.owner, locator) is None
