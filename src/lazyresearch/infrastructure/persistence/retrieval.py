@@ -144,6 +144,29 @@ class PostgreSQLRetrievalStore(DatabaseAdapter):
                 for row in s.execute(query, {**params(request, version), "limit": limit})
             )
 
+    def collection_context(
+        self, request: RetrievalRequest, version: str
+    ) -> tuple[EvidenceCandidate, ...]:
+        # Explicit collection context only: never silently scan the whole workspace.
+        if not request.collection_ids:
+            return ()
+        query = text(
+            "WITH scoped AS (SELECT c.id,c.ordinal,s.created_at, "
+            "row_number() OVER (PARTITION BY c.content_id ORDER BY c.ordinal,c.id) AS source_rank "
+            "FROM content_chunk c " + JOINS + " WHERE " + SCOPE + ") "
+            "SELECT id FROM scoped WHERE source_rank<=:source_cap "
+            "ORDER BY source_rank,created_at DESC,ordinal,id LIMIT :limit"
+        )
+        with self.transaction() as session:
+            ids = tuple(
+                session.scalars(query, {**params(request, version), "limit": request.limit})
+            )
+        # Re-resolve with all ownership, collection, current-extraction and visibility checks.
+        resolved = {
+            candidate.chunk.id: candidate for candidate in self.resolve(request, version, ids)
+        }
+        return tuple(resolved[identity] for identity in ids if identity in resolved)
+
     def resolve(
         self, request: RetrievalRequest, version: str, ids: tuple[UUID, ...]
     ) -> tuple[EvidenceCandidate, ...]:
@@ -178,9 +201,16 @@ class PostgreSQLRetrievalStore(DatabaseAdapter):
             state.visibility = visibility
 
     def create_collection(self, owner: OwnerId, name: str) -> UUID:
-        if not name.strip() or len(name) > 120:
+        name = name.strip()
+        if not name or len(name) > 120:
             raise ValueError("invalid collection name")
         with self.transaction() as s:
+            # Serialize owner-local creation, including concurrent case/space variants.
+            lock(s, f"collections:{owner}")
+            existing = s.scalars(select(CollectionRow).where(CollectionRow.owner_id == owner))
+            for collection in existing:
+                if collection.name.strip().casefold() == name.casefold():
+                    return collection.id
             row = CollectionRow(id=uuid4(), owner_id=owner, name=name)
             s.add(row)
             return row.id

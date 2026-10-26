@@ -1,10 +1,12 @@
 """Application-facing façade. Mutations are explicit, bounded and owner scoped."""
 
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from lazyresearch.application.analysis import ProcessPendingContent
+from lazyresearch.application.analysis_models import AnalysisOutcome
 from lazyresearch.application.intake import IntakeService
 from lazyresearch.application.intake_models import BatchResult, IntakeInput
 from lazyresearch.application.mission_models import MissionScope
@@ -53,6 +55,12 @@ class Workspace:
                     self.reads.assign_collection(self.owner, collection, entry.content_id)
         return receipt
 
+    def create_collection(self, name: str) -> UUID:
+        name = name.strip()
+        if not name or len(name) > 120:
+            raise ValueError("collection name must contain 1 to 120 characters")
+        return self.reads.create_collection(self.owner, name)
+
     def load_demo(self) -> BatchResult:
         return self.add(
             "ui-synthetic-demo-v1",
@@ -76,16 +84,34 @@ class Workspace:
             ),
         )
 
-    def process(self) -> str:
-        outcome = self.processing().process_one(self.owner)
-        return outcome.status if not outcome.error_code else "FAILED:" + outcome.error_code
+    def process(self) -> AnalysisOutcome:
+        processor = self.processing()
+        outcome = processor.process_one(self.owner)
+        source = self.reads.source(self.owner, outcome.content_id) if outcome.content_id else None
+        if outcome.status == "SUCCEEDED" and (source is None or source.analysis is None):
+            raise RepositoryConflict("published analysis is not available in the source projection")
+        return replace(
+            outcome,
+            source_title=source.title if source else None,
+            remaining_sources=processor.store.pending_sources(self.owner, processor.config),
+        )
 
-    def catch_up(self, interests: tuple[str, ...] = ()) -> tuple[RankingDecision, ...]:
-        return self.ranking.rank(self.owner, datetime.now(UTC), interests=interests)
+    def catch_up(
+        self, interests: tuple[str, ...] = (), *, collection_id: UUID | None = None
+    ) -> tuple[RankingDecision, ...]:
+        return self.ranking.rank(
+            self.owner, datetime.now(UTC), interests=interests, collection_id=collection_id
+        )
 
-    def reviewed(self, content: UUID, interests: tuple[str, ...] = ()) -> RankingDecision | None:
+    def reviewed(
+        self, content: UUID, interests: tuple[str, ...] = (), *, collection_id: UUID | None = None
+    ) -> RankingDecision | None:
         decisions = self.ranking.rank(
-            self.owner, datetime.now(UTC), interests=interests, content_id=ContentId(content)
+            self.owner,
+            datetime.now(UTC),
+            interests=interests,
+            content_id=ContentId(content),
+            collection_id=collection_id,
         )
         return decisions[0] if decisions else None
 
@@ -125,9 +151,9 @@ class Workspace:
         # The persisted terminal fence is authoritative; the worker sees cancellation.
         self.mission_commands.terminal(self.owner, mission, "CANCELLED", "CANCELLED")
 
-    def actions(self) -> tuple[ActionItem, ...]:
+    def actions(self, *, collection_id: UUID | None = None) -> tuple[ActionItem, ...]:
         result = []
-        for proposal in self.reads.proposals(self.owner):
+        for proposal in self.reads.proposals(self.owner, collection_id=collection_id):
             identity = ActionId(uuid5(NAMESPACE_URL, f"action:{self.owner}:{proposal.id}"))
             result.append(
                 self.tasks.get(self.owner, identity) or ActionItem.from_proposal(identity, proposal)

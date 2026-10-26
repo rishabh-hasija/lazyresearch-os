@@ -1,5 +1,6 @@
 """Bounded source-only analysis, locator checks and conservative action translation."""
 
+import logging
 import re
 from datetime import date
 from uuid import uuid4
@@ -194,6 +195,14 @@ class ProcessPendingContent:
         work = self.store.claim(owner_id, self.config)
         if work is None:
             return AnalysisOutcome("IDLE")
+        logger = logging.getLogger(__name__)
+        logger.info(
+            "analysis_claimed content_id=%s job_id=%s run_id=%s model=%s",
+            work.lease.content_id,
+            work.lease.id,
+            work.run_id,
+            self.config.model,
+        )
         attempts: list[CallAttempt] = []
         try:
             outputs = []
@@ -218,17 +227,52 @@ class ProcessPendingContent:
                         )
                     )
                     continue
+                logger.info(
+                    "analysis_call_started content_id=%s job_id=%s start=%s end=%s",
+                    work.lease.content_id,
+                    work.lease.id,
+                    segment.start,
+                    segment.end,
+                )
                 result = self.processor.analyze(request)
+                logger.info(
+                    "analysis_call_completed content_id=%s job_id=%s calls=%s",
+                    work.lease.content_id,
+                    work.lease.id,
+                    len(result.attempts),
+                )
                 attempts.extend(result.attempts)
                 outputs.append((request, result.output))
             analysis = assemble(work, tuple(outputs))
         except AIError as exc:
             attempts.extend(exc.attempts)
             self.store.fail(work, exc.code, tuple(attempts))
-            return AnalysisOutcome("FAILED", error_code=exc.code)
+            logger.warning(
+                "analysis_failed content_id=%s job_id=%s error_code=%s",
+                work.lease.content_id,
+                work.lease.id,
+                exc.code,
+            )
+            return AnalysisOutcome(
+                "FAILED",
+                error_code=exc.code,
+                content_id=work.lease.content_id,
+                job_id=work.lease.id,
+            )
         # Storage errors deliberately escape: the job remains recoverable, never falsely successful.
         self.store.publish(work, analysis, tuple(attempts))
-        return AnalysisOutcome("SUCCEEDED", analysis_id=analysis.id)
+        logger.info(
+            "analysis_published content_id=%s job_id=%s analysis_id=%s",
+            work.lease.content_id,
+            work.lease.id,
+            analysis.id,
+        )
+        return AnalysisOutcome(
+            "SUCCEEDED",
+            analysis_id=analysis.id,
+            content_id=work.lease.content_id,
+            job_id=work.lease.id,
+        )
 
 
 def claim_review_cases(analysis: ContentAnalysis) -> tuple[dict[str, object], ...]:

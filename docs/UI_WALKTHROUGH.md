@@ -1,3 +1,63 @@
+# Current Research UX follow-up — 2026-10-26
+
+Selecting a topic automatically renders its current COMPLETED/PARTIAL brief under Current
+research. There is no View result button for this brief. Partial results say:
+"This result is based on limited evidence. Review the coverage limitations below."
+
+Answer, Summary, Findings, Recommendations, exact evidence panels, stored limitations and
+What changed are preserved. Previous research stays collapsed by default; older completed
+missions can be opened with Open brief or selected in the existing version picker. Failed
+missions show their actual failure state and never acquire a fake brief.
+
+Verified with 8 focused PostgreSQL/Streamlit tests; Ruff, formatting and mypy passed.
+This follow-up changes UI only. Earlier direct-button instructions below are historical.
+
+---
+
+# Research result access update — 2026-10-26
+
+Choose an existing Research topic. Current research shows its stored Current Brief mission,
+with a View result button for a published COMPLETED or PARTIAL result. Clicking opens the
+answer, summary, findings, recommendations, exact evidence/citations, coverage limitations and
+stored What changed. Empty required sections explicitly say nothing was published.
+
+Partial coverage is an available brief with limitations, not a failure. The Office software brief
+uses one saved meeting note and bounded collection context without a full-question lexical match.
+Both stored limitations are shown with explanations. Its recommendations section truthfully
+reports no published recommendations. Exact evidence opens through each claim's evidence panel.
+
+Previous research is collapsed by default and contains older terminal attempts, including both
+preserved Office software failures, and the existing immutable version picker. Failed reruns do
+not replace Current Brief. Queued/running requests stay visible under Research in progress.
+Refresh reads existing progress/results; do not submit another mission merely to open a brief.
+
+Verified against the saved Neon Office software mission using read-only Streamlit AppTest:
+one immutable partial result v1, only the meeting note cited, two preserved failures in history,
+and unchanged source/extraction/analysis/mission/result snapshots. Chrome also verified View result,
+the exact citation and both old failures in collapsed-by-default history. Proof screenshot:
+.local-tools/research-result-open.png. Local preview was restarted;
+hosted Render was not redeployed.
+
+---
+
+# What Matters scope update — 2026-10-26
+
+The top Collection picker offers All sources plus this workspace's collections. Membership is
+filtered in PostgreSQL before the candidate limit; counts and grouped items use only that scope.
+Feedback still refers to the original saved source. Ranking/TabPFN rules and owner-wide history
+are unchanged. The last collection survives page navigation within the session, and creating or
+using a collection on Add Sources carries that choice to What Matters. Other sessions start at
+All sources; no database/global preference is saved.
+
+Interests uses the new plain-language question/example/help; matching remains case-insensitive
+exact topic matching, with comma-separated interests parsed internally. Scope/interests changes
+refresh the ranking cache. Use Refresh for external changes. Existing unreviewed/50-candidate
+limits remain. The local Neon-backed owner preview verified Office software has one Action
+required item (meeting notes), with no battery items; all four counts reflect that filter.
+Focused ranking/PostgreSQL/UI tests: 57 passed; Ruff/format/mypy passed. Not redeployed to Render.
+
+---
+
 # UX/onboarding update — 2026-10-25
 
 Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active model variant unavailable.
@@ -10,6 +70,12 @@ row to exactly #00E300 with #101810 text, a large target, hover border and visib
 focus outline. There are no radio circles. Navigation and page rendering share a named
 `workspace-content` fragment; the single app name/tagline and demo warning sit outside it.
 Native fragment navigation preserves the header rather than rerendering it on every switch.
+
+A retained workspace missing the current collection API is recomposed without clearing form
+drafts. The owner failure on 2026-10-25 confirmed that a long-running process can also retain
+old Python imports: that requires a process restart, followed by restoring any unsaved draft.
+Collection failure logs retain exception classes, SQLSTATE and stack locations, never payloads
+or credentials. Real Neon creation, immediate selection and assignment were verified afterward.
 
 Workspace/bootstrap, SQLAlchemy engine/pool and optional ranking model remain session-owned,
 constructed once per session. A configuration change requires a clean session/process restart.
@@ -108,9 +174,16 @@ complete, dismiss, reopen and edits use domain methods. No external execution ad
   failures. Receipts distinguish failed, saved, duplicate and unavailable/failed extraction.
   Saved-source details show current processing state, exact original extraction excerpt, model
   summary/topics/proposals and safe source URL. Analyze next source is explicit synchronous work;
-  failed analysis can be queued for an explicit retry. No background source runner is implied.
-- Existing collections can be assigned during intake and selected as research scope. Collection
-  creation/management UI is not added. The optional sample button uses a stable owner/request key
+  failed analysis can be queued for an explicit retry. Analyze next source prioritizes first-time
+  analysis over configuration refreshes, reports the actual source name only after persistence and
+  fresh projection validation, and shows how many distinct sources remain queued for the current
+  settings. Failures never show completion. No background source runner is implied.
+- Collections can be created inline on Add Sources using + Create collection and a name only.
+  No collection remains the default; a new collection is selected for the pending submission.
+  Blank names are rejected; trimmed, case-insensitive duplicates reuse an existing owner-scoped
+  collection. Source drafts survive the inline form. Collection editing/deletion remains absent.
+  Existing collections can be assigned during intake and selected as research scope.
+  The optional sample button uses a stable owner/request key
   and two clearly synthetic battery texts. Repeating it does not multiply captures or invent
   analyses/results/feedback. Session state contains display/cache data; PostgreSQL remains canonical.
 - What Matters uses the four backend classes with human labels and explicit BASELINE versus PERSONAL
@@ -207,3 +280,50 @@ Community research found one relevant caution about ephemeral Streamlit session 
 [We replaced Streamlit session state with Hindsight vector memory](https://dev.to/rithvik44/i-replaced-streamlit-session-state-with-hindsight-vector-memory-g9b).
 Its comments were empty; no consensus is claimed and its extra memory service was not adopted.
 This app keeps canonical state in the already-selected PostgreSQL backend.
+
+## Feedback confirmation follow-up (2026-10-26)
+
+In What Matters, select Office software and use the meeting note's feedback form. After Save feedback,
+the committed-write confirmation appears inside that form, above the button: Saved. LazyResearch
+will use this choice to learn your preferences. A failed write shows a sanitized error in the same
+place; a committed write followed by a refresh failure retains success with a separate refresh warning.
+The live Neon check preserved the two existing ACT events and appended one ACT correction. Focused
+real PostgreSQL/UI regressions cover success location, reruns/corrections, COMMIT rollback and
+post-commit read failure; final focused suite 52 passed. No hosted deployment was performed.
+
+## Shared collection and page navigation follow-up (2026-10-26)
+
+Workspace navigation scrolls the main viewport to top immediately on a different page click. It does
+not reset on current-page clicks or evidence/filter/feedback/refresh interactions. This is a static
+JavaScript handler using Streamlit 1.66.1 DOM hooks; no timer is used.
+
+What Matters and Actions use the shared session collection (All sources remains available). Research
+preselects that collection in its editable scope and retains explicit topic choices per scope. A new
+context starts without a topic: use + New research topic, edit its collection-based suggested name,
+then Create topic. Collections and research topics remain separate objects. Previous research is
+collapsed/lazy until opened, or a followed mission completes and Refresh exposes its new brief.
+
+Actions uses each action's immutable cited-source memberships. All cited sources must belong to the
+selected collection; mixed/unassigned evidence stays under All sources. The real Office software
+check returned Confirm Tool B SSO support and Confirm Tool C data export capability; All sources
+returned 16 actions. Test review/edit transitions preserve evidence and optimistic revisions.
+
+Live preview: http://127.0.0.1:8505. The new Office software topic and personal-only scoped mission
+df99600f-8f4c-4d60-9c40-c0c9a58a71cf persisted in Neon; last verified QUEUED. Worker completion and
+hosted deployment were not verified. Focused tests: 42 passed; final filtered-edit test passed again;
+Ruff/format/mypy passed. See STATUS for exact commands, limitations and evidence.
+
+## Office software mission completion follow-up (2026-10-26)
+
+The two prior failed missions remain in history. Full-question lexical matching found no evidence,
+and freeze rejected NO_EVIDENCE. Selected-collection missions now use bounded collection context
+when question search is empty, with a disclosed PARTIAL limitation; no collection means no such
+fallback, and truly empty evidence still fails.
+
+One new mission 49cceeee-0ba2-4cf9-aa09-c5777703d412, with the exact owner question and Office
+software scope/public=false, completed through Temporal Cloud and real Gemma in 30.29 s of synthesis.
+It published immutable brief 20addecb-a05a-5d55-b67f-10a9037b163d v1, PARTIAL, with one citation to
+Meeting notes about new office software. Open Research, explicitly select the Office software topic,
+Refresh research, then open Previous research to inspect the brief and evidence. Do not queue another
+mission to read it. The worker was restarted with the fix and remains running; the hosted web was
+not deployed. See STATUS for the preserved-data audit and exact focused test results.

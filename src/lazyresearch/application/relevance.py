@@ -4,7 +4,7 @@ import json
 from dataclasses import asdict
 from datetime import datetime
 from hashlib import sha256
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from lazyresearch.application.relevance_evaluation import (
     chronological_split,
@@ -58,13 +58,14 @@ class CatchUp:
         interests: tuple[str, ...] = (),
         limit: int = 50,
         content_id: ContentId | None = None,
+        collection_id: UUID | None = None,
     ) -> tuple[RankingDecision, ...]:
         cutoff = utc_instant(cutoff, "cutoff")
         if not 1 <= limit <= 100 or len(interests) > 20:
             raise ValueError("ranking request exceeds bounds")
         if any(not t.strip() or len(t) > 100 for t in interests):
             raise ValueError("invalid interest")
-        items = self.store.candidates(owner, cutoff, interests, limit, content_id)
+        items = self.store.candidates(owner, cutoff, interests, limit, content_id, collection_id)
         if any(i.owner_id != owner or i.cutoff != cutoff for i in items):
             raise ValueError("invalid scoped ranking inputs")
         if not items:

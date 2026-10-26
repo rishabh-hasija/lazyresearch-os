@@ -272,3 +272,7 @@ class AnalysisOutcome:
     status: Literal["SUCCEEDED", "FAILED", "IDLE"]
     analysis_id: UUID | None = None
     error_code: str | None = None
+    content_id: UUID | None = None
+    job_id: UUID | None = None
+    source_title: str | None = None
+    remaining_sources: int | None = None

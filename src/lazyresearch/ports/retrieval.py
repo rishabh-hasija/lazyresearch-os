@@ -26,6 +26,9 @@ class EvidenceStore(Protocol):
     def lexical(
         self, request: RetrievalRequest, version: str, limit: int
     ) -> tuple[ScoredChunk, ...]: ...
+    def collection_context(
+        self, request: RetrievalRequest, version: str
+    ) -> tuple[EvidenceCandidate, ...]: ...
     def resolve(
         self, request: RetrievalRequest, version: str, ids: tuple[UUID, ...]
     ) -> tuple[EvidenceCandidate, ...]: ...

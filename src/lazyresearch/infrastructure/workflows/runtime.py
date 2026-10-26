@@ -1,8 +1,11 @@
 """Activity bindings, explicit worker startup and dispatch reconciliation."""
 
 import asyncio
+import logging
+import traceback
 from collections.abc import Callable, Coroutine
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -18,6 +21,49 @@ from lazyresearch.application.missions import ResearchOperations
 from lazyresearch.infrastructure.persistence.missions import PostgreSQLMissionStore
 from lazyresearch.infrastructure.workflows.research import ResearchMissionWorkflow
 from lazyresearch.ports.errors import RepositoryError
+
+# Only fixed operational categories may reach logs, never arbitrary exception messages.
+DIAGNOSTIC_CODES = frozenset(
+    {
+        "NO_EVIDENCE",
+        "INVALID_CITATION",
+        "STALE_EXTRACTION",
+        "MISSION_NOT_RUNNING",
+        "DEADLINE_EXCEEDED",
+        "INVALID_SCOPE",
+        "SEARCH_NOT_PERMITTED",
+        "INVALID_SOURCE_INDEX",
+        "EVIDENCE_NOT_FROZEN",
+        "SYNTHESIS_MISSING",
+        "INVALID_SYNTHESIS",
+        "INPUT_BUDGET_EXCEEDED",
+        "INVALID_DEADLINE",
+        "NOT_FOUND",
+        "UNKNOWN_STAGE",
+        "SEARCH_UNAVAILABLE",
+        "FETCH_TRANSIENT",
+    }
+)
+
+
+def log_operation_failure(
+    name: str, owner: UUID, mission: UUID, attempt: int, error: Exception
+) -> None:
+    code = str(error) if isinstance(error, MissionError) else ""
+    logging.getLogger(__name__).error(
+        "mission_operation_rejected activity=%s owner=%s mission=%s attempt=%s "
+        "code=%s exception=%s frames=%s",
+        name,
+        owner,
+        mission,
+        attempt,
+        code if code in DIAGNOSTIC_CODES else "UNCLASSIFIED",
+        type(error).__name__,
+        [
+            (Path(f.filename).name, f.name, f.lineno)
+            for f in traceback.extract_tb(error.__traceback__)
+        ],
+    )
 
 
 def activities(operations: ResearchOperations) -> list[Callable[..., Coroutine[Any, Any, str]]]:
@@ -74,15 +120,18 @@ def activities(operations: ResearchOperations) -> list[Callable[..., Coroutine[A
                     activity.heartbeat()
                     await asyncio.wait({task}, timeout=3)
                 return await task
-            except (TransientMissionError, RepositoryError):
+            except (TransientMissionError, RepositoryError) as exc:
+                log_operation_failure(name, owner, mission, activity_attempt, exc)
                 raise ApplicationError(
                     "TRANSIENT_OPERATION", type="TransientMissionError"
                 ) from None
-            except MissionError:
+            except MissionError as exc:
+                log_operation_failure(name, owner, mission, activity_attempt, exc)
                 raise ApplicationError(
                     "INVALID_OPERATION", type="PermanentMissionError", non_retryable=True
                 ) from None
-            except Exception:
+            except Exception as exc:
+                log_operation_failure(name, owner, mission, activity_attempt, exc)
                 # Provider/schema/DB exception text may contain payloads. Never put it in history.
                 raise ApplicationError(
                     "OPERATION_FAILED", type="PermanentMissionError", non_retryable=True

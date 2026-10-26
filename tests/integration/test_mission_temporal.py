@@ -12,7 +12,11 @@ from lazyresearch.infrastructure.config import Settings
 from lazyresearch.infrastructure.workflows.connection import connect_temporal
 from lazyresearch.infrastructure.workflows.research import ResearchMissionWorkflow
 from lazyresearch.infrastructure.workflows.runtime import reconcile, research_worker
-from tests.integration.test_missions import mission_setup  # noqa: F401, F811
+from tests.integration.test_missions import (  # noqa: F401
+    OFFICE_QUESTION,
+    mission_setup,
+    office_mission_setup,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -170,4 +174,34 @@ def test_source_retry_and_publish_ack_loss_do_not_duplicate(mission_setup):  # n
     asyncio.run(run())
     assert calls[search.urls[0]] == 2 and calls[search.urls[1]] == 1
     assert len(published) == 2 and published[0] == published[1]
+    assert len(ops.store.versions(owner, topic.id)) == 1
+
+
+def test_office_question_real_workflow_freezes_collection_context_and_publishes_once(
+    office_mission_setup,  # noqa: F811
+):
+    address = os.environ.get("TEMPORAL_TEST_ADDRESS")
+    if not address:
+        pytest.skip("TEMPORAL_TEST_ADDRESS not configured")
+    ops, owner, topic, collection, content = office_mission_setup
+    mission = ops.store.create_mission(
+        owner, topic.id, OFFICE_QUESTION, MissionScope(collection_ids=(collection,), public=False)
+    )
+
+    async def run():
+        client = await connect_temporal(Settings(database_url="unused", temporal_address=address))
+        queue = "lr-office-" + uuid4().hex
+        async with research_worker(client, ops, queue):
+            await reconcile(client, ops.store, queue)
+            result = await asyncio.wait_for(
+                client.get_workflow_handle(str(mission.id)).result(), 60
+            )
+            history = await client.get_workflow_handle(str(mission.id)).fetch_history()
+        await Replayer(workflows=[ResearchMissionWorkflow]).replay_workflow(history)
+        return uuid_from(result)
+
+    result = asyncio.run(run())
+    assert ops.store.get_mission(owner, mission.id).status.value == "PARTIAL"
+    assert {e.content_id for e in ops.store.evidence(owner, mission.id)} == {content}
+    assert ops.store.publish(owner, mission.id) == result
     assert len(ops.store.versions(owner, topic.id)) == 1

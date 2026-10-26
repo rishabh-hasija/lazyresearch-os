@@ -4,7 +4,7 @@ from dataclasses import asdict
 from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
 
-from sqlalchemy import Engine, and_, func, or_, select
+from sqlalchemy import Engine, and_, exists, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -98,7 +98,19 @@ class SQLAlchemyAnalysisStore(DatabaseAdapter):
                         ),
                     ),
                 )
-                .order_by(JobRow.created_at, JobRow.id)
+                # A newly saved extraction must not wait behind configuration refreshes
+                # of sources that already have a usable analysis.
+                .order_by(
+                    exists(
+                        select(ContentAnalysisRow.id).where(
+                            ContentAnalysisRow.owner_id == JobRow.owner_id,
+                            ContentAnalysisRow.content_id == JobRow.content_id,
+                            ContentAnalysisRow.extraction_id == JobRow.extraction_id,
+                        )
+                    ),
+                    JobRow.created_at,
+                    JobRow.id,
+                )
                 .limit(1)
                 .with_for_update(skip_locked=True)
             )
@@ -168,6 +180,18 @@ class SQLAlchemyAnalysisStore(DatabaseAdapter):
                     ),
                 ),
             )
+
+    def pending_sources(self, owner_id: OwnerId, config: AnalysisConfig) -> int:
+        with self.transaction() as s:
+            count = s.scalar(
+                select(func.count(func.distinct(JobRow.content_id))).where(
+                    JobRow.owner_id == owner_id,
+                    JobRow.kind == "ANALYZE",
+                    JobRow.version.startswith(f"ai:{config.fingerprint}:"),
+                    JobRow.status.in_(("PENDING", "RUNNING")),
+                )
+            )
+            return int(count or 0)
 
     def renew(self, work: AnalysisWork) -> None:
         with self.transaction() as s:

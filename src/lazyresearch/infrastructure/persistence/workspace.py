@@ -43,6 +43,7 @@ from lazyresearch.infrastructure.persistence.repositories import DatabaseAdapter
 from lazyresearch.infrastructure.persistence.retrieval import PostgreSQLRetrievalStore
 from lazyresearch.infrastructure.persistence.retrieval_models import (
     CollectionRow,
+    MembershipRow,
     RetrievalStateRow,
 )
 from lazyresearch.infrastructure.persistence.workspace_models import ActionItemRow
@@ -58,9 +59,11 @@ class PostgreSQLWorkspaceReads(DatabaseAdapter):
                     select(CollectionRow)
                     .where(CollectionRow.owner_id == owner)
                     .order_by(CollectionRow.name)
-                    .limit(100)
                 )
             )
+
+    def create_collection(self, owner: OwnerId, name: str) -> UUID:
+        return PostgreSQLRetrievalStore(self.engine).create_collection(owner, name)
 
     def assign_collection(self, owner: OwnerId, collection: UUID, content: UUID) -> None:
         from lazyresearch.domain.identity import ContentId
@@ -212,9 +215,17 @@ class PostgreSQLWorkspaceReads(DatabaseAdapter):
     def missions(self, owner: OwnerId, topic: UUID) -> tuple[MissionView, ...]:
         with self.transaction() as s:
             return tuple(
-                MissionView(r.id, r.question, r.status, r.stage, r.run_sequence, r.failure)
-                for r in s.scalars(
-                    select(MissionRow)
+                MissionView(
+                    r.id, r.question, r.status, r.stage, r.run_sequence, r.failure, result_id
+                )
+                for r, result_id in s.execute(
+                    select(MissionRow, ResultRow.id)
+                    .outerjoin(
+                        ResultRow,
+                        (ResultRow.owner_id == MissionRow.owner_id)
+                        & (ResultRow.topic_id == MissionRow.topic_id)
+                        & (ResultRow.mission_id == MissionRow.id),
+                    )
                     .where(MissionRow.owner_id == owner, MissionRow.topic_id == topic)
                     .order_by(MissionRow.run_sequence.desc())
                     .limit(50)
@@ -312,8 +323,22 @@ class PostgreSQLWorkspaceReads(DatabaseAdapter):
                 return None
             return value
 
-    def proposals(self, owner: OwnerId) -> tuple[ActionProposal, ...]:
+    def proposals(
+        self, owner: OwnerId, *, collection_id: UUID | None = None
+    ) -> tuple[ActionProposal, ...]:
         with self.transaction() as s:
+            members = (
+                set(
+                    s.scalars(
+                        select(MembershipRow.content_id).where(
+                            MembershipRow.owner_id == owner,
+                            MembershipRow.collection_id == collection_id,
+                        )
+                    )
+                )
+                if collection_id is not None
+                else None
+            )
             ids = list(
                 s.scalars(
                     select(ActionProposalRow.id)
@@ -328,7 +353,18 @@ class PostgreSQLWorkspaceReads(DatabaseAdapter):
                     .limit(100)
                 )
             )
-        return tuple(p for identity in ids if (p := self.proposal(owner, identity)) is not None)
+        # Filter immutable per-action evidence, never editable titles or topic names.
+        # Every cited source must belong: mixed/unassigned/public-only evidence is
+        # available under All sources rather than guessed into a single collection.
+        return tuple(
+            p
+            for identity in ids
+            if (p := self.proposal(owner, identity)) is not None
+            and (
+                members is None
+                or (bool(p.evidence) and all(e.content_id in members for e in p.evidence))
+            )
+        )
 
     def retry_analysis(self, owner: OwnerId, job: UUID) -> None:
         SQLAlchemyAnalysisStore(self.engine).retry_failed(owner, job)

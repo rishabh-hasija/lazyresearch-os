@@ -1,3 +1,557 @@
+# Current Research brief renders automatically — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+UI-only follow-up; preserved prior unstaged work. No backend/domain/persistence changes,
+migration, deployment, commit or push.
+
+The Current research COMPLETED/PARTIAL brief now renders automatically through the existing
+validated result read. It has no View result/Open brief button and does not depend on saved
+submission-session state. Removed the obsolete follow-mission UI state. Historical completed
+missions retain Open brief inside default-collapsed Previous research; the existing immutable
+version picker remains. Current Brief ordering, publication, evidence and history are unchanged.
+PARTIAL copy is: "This result is based on limited evidence. Review the coverage limitations below."
+Answer, Summary, Findings, Recommendations, exact Evidence, Coverage limitations and What changed
+remain present, including honest empty recommendations and stored partial-coverage explanations.
+
+Checks actually run:
+- pytest tests/integration/test_workspace.py -q -k
+  'research or current_brief or failed_rerun or failed_only':
+  8 passed / 24 deselected in 29.69 s, exit 0.
+- Covers fresh-session automatic COMPLETED/PARTIAL briefs without a current-result button,
+  completion after Refresh, historical briefs collapsed/openable, exact citations/limitations,
+  failed rerun and out-of-order Current Brief preservation, and failed-only topics with no fake
+  brief or result control. PostgreSQL uses isolated local test schemas and fake providers.
+- Ruff check .: all checks passed. Ruff format --check .: 155 files already formatted.
+  mypy src: no issues in 73 source files. All exit 0.
+- Full suite, new live Neon/browser walkthrough, inference/Temporal and Render checks not run.
+  The earlier direct-button/browser verification below is historical and superseded for current UX.
+- git diff --check: exit 0.
+
+Remaining limits: manual refresh and existing list caps remain. Hosted Render has not been
+redeployed. No new mission or external action was performed.
+
+---
+
+# Research result access fixed — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Preserved all prior unstaged walkthrough work. No commit, push, migration or deployment.
+
+Root cause: Research rendered every mission inline as question/status without a result control.
+Published briefs were behind Previous research. Automatic opening depended on the submitting
+session's research-follow-mission state and opened history instead of Current research.
+A returning session therefore hid the valid partial brief while displaying older failures.
+
+Changes:
+- MissionView includes the actual published result ID, projected through an owner/topic/mission
+  scoped outer join. No schema, publication, workflow or immutable versioning changes.
+- Current research uses the stored Current Brief pointer, preserving failed-rerun and
+  out-of-order publication policy. In-progress requests remain visible with cancellation.
+- COMPLETED/PARTIAL missions with a published result offer View result; clicking rereads the
+  exact immutable result through existing owner/evidence validation. No fake result for failures
+  or missing publications. Submitting-session completion opens the current brief directly.
+- Older terminal attempts are rendered only inside the default-collapsed Previous research.
+  Existing version selection and stored What changed remain available there.
+- Briefs show answer, summary, findings, recommendations, exact evidence panels and limitations.
+  Empty required sections explicitly say nothing was published; no generated content is invented.
+  Partial coverage means an available limited brief, with stored limitations and explanations
+  for insufficient sources and the selected-collection context fallback. Evidence widget keys
+  distinguish direct/history renders, so both can be open without duplicate-widget errors.
+
+Exact saved Office software verification (read-only Neon + Streamlit AppTest):
+- Latest mission 49cceeee-0ba2-4cf9-aa09-c5777703d412 remains PARTIAL; result
+  20addecb-a05a-5d55-b67f-10a9037b163d remains the sole publication, version 1.
+- View result opens all core sections, partial limitations and What changed. Recommendations
+  are actually empty in this saved brief, and the UI states no recommendations were published.
+- Exact answer evidence resolves only to Meeting notes about new office software.
+- Stored limitations: selected_collection_context_used_without_question_match and
+  insufficient_personal_sources. Both are visible with an explanation.
+- Both older failed missions remain FAILED without result IDs and appear only when Previous
+  research opens. No new missions, synthesis or publication retries were performed.
+- All verification database transactions were SET TRANSACTION READ ONLY. Before/after SHA-256
+  snapshots of owner sources, extractions, analyses, missions and results matched.
+  Ignored evidence: .local-tools/research-result-access.json and verify_result_access.py.
+- Chrome walkthrough at 127.0.0.1:8505 also passed: selected existing Office software topic,
+  clicked View result, opened exact answer citation, expanded history to see failed runs 2/1,
+  then collapsed history again. Current brief remains open. Screenshot:
+  .local-tools/research-result-open.png. No mission submitted or source/action write performed.
+- Local preview at 127.0.0.1:8505 was restarted to load updated imported projections; empty
+  source/research drafts were observed beforehand. Other preview/worker processes were retained.
+
+Checks actually run:
+- pytest tests/integration/test_workspace.py tests/test_presenters.py tests/test_missions.py -q:
+  73 passed in 93.14 s. PostgreSQL tests use isolated local test schemas and fake providers.
+- After extending the empty-recommendations regression, pytest tests/integration/test_workspace.py
+  -q -k 'published_mission or failed_rerun': 3 passed / 28 deselected in 13.13 s.
+- Regressions cover direct access for COMPLETED/PARTIAL from fresh sessions, hidden older failures,
+  partial limitations, exact quotes/citations, unchanged result payload/count, owner isolation,
+  failed reruns, out-of-order publication and submitting-session completion.
+- Ruff check ., Ruff format --check . and mypy src passed: 155 files already formatted,
+  no issues in 73 source files. git diff --check: exit 0.
+- Full repository suite, new live inference/Temporal execution and hosted Render checks not run.
+  Earlier intermediate assertions were corrected for the new UI and strict JSON evidence parsing.
+
+Remaining limits: manual refresh and existing 50-item mission/history caps remain; partial coverage
+does not establish comprehensive verification or reviewed factual support. Render was not redeployed.
+No external actions were executed.
+
+---
+
+# Office software Temporal freeze failure fixed and verified — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / High for cross-layer diagnosis; Claude Code Opus 5. Exact active
+variant unavailable. Preserved prior unstaged work. No commit, push, migration or deployment.
+
+Actual PostgreSQL + Temporal Cloud investigation:
+- Failed missions df99600f-8f4c-4d60-9c40-c0c9a58a71cf and
+  6fa4306d-3fcd-4386-bf76-126ef7c2d0f9 both used the exact owner question and Office software
+  collection 35415b67-bbb2-4d19-a984-b590a2739229, personal=true/public=false/lexical=true/vector=false.
+  Both Cloud histories failed freeze_evidence with PermanentMissionError INVALID_OPERATION, then
+  ran fail. PostgreSQL records FAILED / WORKFLOW_FAILED, stage select_sources, frozen=false,
+  zero frozen evidence and zero results. They started at 00:35:57 UTC and failed at 00:35:59 UTC.
+- Before the rejected freeze, mission_created had put each mission RUNNING. personal_search stored
+  zero evidence, gap_detection stored insufficient_personal_sources with no public queries, and
+  select_sources stored zero hits. No synthesis activity was scheduled: Gemma was never called
+  for these failures. Nothing was stale, duplicated or already frozen; the selection was empty.
+- The collection contained the correct ACTIVE meeting note with current extraction
+  0e98cf21-e2de-4ae4-8800-41b2fee7a1e1 and one compatible indexed chunk. Re-running the read-only
+  retrieval request returned zero. SQL uses plainto_tsquery('simple', question), requiring every
+  word of the full natural-language question to occur in the chunk. Scoping was correct; this
+  lexical question mismatch, not missing extraction/analysis, caused the empty stage receipt.
+- Exact rejected operation: ResearchOperations.freeze_evidence -> PostgreSQLMissionStore.freeze
+  with an empty tuple -> MissionError(NO_EVIDENCE). The generic activity adapter hid that code
+  behind INVALID_OPERATION. The same rejection is reproduced against PostgreSQL in regression.
+
+Fix:
+- Research personal_search keeps existing lexical/vector lookup unchanged. Only if it returns no
+  candidates AND the mission explicitly names collections, request bounded collection context.
+- EvidenceStore.collection_context / PostgreSQL adapter use existing owner/collection/current
+  extraction/ACTIVE/successful extraction/chunker-version predicates. SQL caps chunks per source,
+  interleaves source ranks with deterministic ordering and applies the request limit (mission default
+  <=5 chunks). resolve rechecks scope and availability. No collection means no context scan.
+- Evidence is truthfully recorded as method=collection_context, with persisted limitation
+  selected_collection_context_used_without_question_match; no semantic/lexical match is claimed.
+  Empty collections still raise NO_EVIDENCE; immutable evidence, stale extraction, citation,
+  cancellation, budget and publication invariants were not relaxed. No schema/workflow redesign.
+- Worker logs now identify activity, owner/mission IDs, attempt, allowlisted operational code,
+  exception class and file/function/line frames. Unknown exception messages are never logged;
+  raw questions, source contents, SQL parameters and credentials stay out. Temporal/user-facing
+  failure messages remain sanitized, with the existing retry/permanent classifications.
+
+Live clean mission (one new mission only):
+- Restarted the idle local worker after verifying zero active missions. Current worker child PID
+  12084 (venv launcher 20824) remains running with existing ignored .env / Temporal Cloud / Neon.
+  Logs: ignored .local-tools/research-worker.stdout.log and research-worker.stderr.log.
+- Topic Office software; collection Office software; exact question What should we verify before
+  choosing office software?; public=false. Mission 49cceeee-0ba2-4cf9-aa09-c5777703d412 was observed
+  QUEUED -> RUNNING -> PARTIAL. Cloud workflow COMPLETED, run
+  01a175ad-6a4f-7c25-8f1c-c9d676b70746. No failed mission was reset or reused.
+- Actual Ollama gemma4:e4b synthesis: 30.291158 s, repaired=false. Immutable result
+  20addecb-a05a-5d55-b67f-10a9037b163d, version 1. One evidence citation resolves to
+  Meeting notes about new office software, source 9d87688b-06a7-4cd7-a5d5-ecd41ae6e0bb,
+  and that source is a current member of the selected collection. No unrelated evidence.
+- PARTIAL is legitimate: collection-context fallback without a question match and only one
+  personal source (insufficient_personal_sources). This is not a claim of comprehensive external
+  verification; public search was disabled and factual citation support remains unreviewed.
+- One result row only. Repeating publish for this same completed mission returned the same ID
+  and kept the result count at one. Both failed missions/history remain FAILED and unfrozen.
+  All 8 original IDs/hashes, 8 extraction IDs/hashes and 14 prior analysis IDs are unchanged.
+  Existing result IDs were retained. Local ignored evidence: mission-failure-before.json and
+  office-mission-clean.json (IDs, states and hashes; no original source text/credentials).
+
+Checks actually run:
+- New targeted regression/diagnostic tests: 5 passed / 13 deselected in 5.43 s.
+- TEMPORAL_TEST_ADDRESS=127.0.0.1:7233 pytest tests/test_missions.py
+  tests/test_mission_activities.py tests/integration/test_missions.py
+  tests/integration/test_mission_temporal.py tests/integration/test_retrieval.py -q:
+  63 passed in 61.95 s, no skips. Uses the existing local Temporal server, random task queues,
+  isolated test PostgreSQL schemas and fake providers; workflow publication/replay/retry/restart/
+  cancellation tests ran. Separate live Cloud/Gemma verification is described above.
+- Additional Research UI/application compatibility: pytest tests/integration/test_workspace.py -q
+  -k research: 4 passed / 24 deselected in 16.89 s.
+- Regression covers the exact long question, old empty receipt rejection, new scoped context,
+  preserved failure history, exact citations, idempotent freeze/publication and PARTIAL limits;
+  no-scope/foreign-owner/deleted/empty scope exclusion; source caps; real Temporal replay; and
+  safe detailed diagnostics (including exceptions containing PRIVATE text, which must not leak).
+- Ruff check .: all checks passed. Ruff format --check .: 155 files already formatted.
+  mypy src: no issues in 73 source files. git diff --check: exit 0. All exit 0.
+- Full suite, hosted Render deployment and unrelated public search/TabPFN inference not run.
+
+Remaining limits: full-question lexical semantics remain unchanged. The explicit-collection context
+fallback is a bounded sample, not fuzzy matching or a guarantee of relevance/completeness. Empty
+unscoped missions still fail without fabricating evidence. Public demo web was not redeployed;
+UI refresh reads the newly persisted brief. The web mission-submission contract is unchanged;
+the worker was restarted to load the changed research operation. No external actions were executed.
+
+---
+
+# Workspace navigation and Research/Actions collection context — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Preserved prior unstaged work. No commit, push, migration, deployment or domain/workflow redesign.
+
+Root causes: fragment navigation reused the same main scroll container; no navigation-specific
+scroll behavior existed. Research selected the first topic database row and eagerly displayed its
+history. Its collection multiselect started empty. Actions read every owner proposal without scope.
+
+Implemented:
+- Static st.html JavaScript installs one delegated capture-phase click listener for Workspace nav.
+  A click on another page instantly scrolls stMain to zero before server IO/render. Current-page
+  clicks and every control outside nav do nothing. No timer, delay, iframe or extra dependency.
+- Shared non-widget workspace-collection session key carries selection across What Matters,
+  Actions, Research and Add Sources. Existing what-matters-scope sessions migrate on first read;
+  missing/foreign collections fall back to All sources. Add Sources carries creation/successful
+  collection assignment and preselects active context when it changes. No global DB preference.
+- Research scope starts from that context; users can clear/change it. Explicit topic selections
+  persist per exact collection scope, independently of widget cleanup and database row order.
+  A new scope with no explicit choice shows no selected topic and offers + New research topic;
+  the inline name defaults to the active collection but remains editable. Only Create topic writes
+  a distinct ResearchTopic. ResearchMission frozen inputs and immutable results are unchanged.
+- Start / Ask Research precedes Previous research. Historical briefs load lazily only when that
+  expander opens. Selecting an existing topic then opening it still exposes versions/evidence and
+  frozen comparisons. Refresh opens the followed mission's newly completed/partial brief.
+- Actions exposes All sources plus owner collections. Optional collection_id passes through
+  Workspace.actions / WorkspaceReads.proposals. One owner-qualified membership query supplies
+  content IDs, then immutable per-action evidence determines inclusion: nonempty evidence and ALL
+  its cited content IDs must belong to the selected collection. This also applies to research-result
+  actions; it uses each action's actual citations rather than title/topic/mission-name matching.
+  Mixed/unassigned/public-only evidence is excluded conservatively unless all its sources genuinely
+  have that membership; the scoped UI explains that All sources retains them. Original evidence
+  availability/owner checks still apply. Counts derive from the filtered list; existing order,
+  lifecycle, revision checks, edits and history remain. No action is written by filtering.
+
+Verification actually run:
+- pytest tests/integration/test_workspace.py tests/test_presenters.py tests/test_navigation_scroll.py
+  -q: 42 passed in 79.77 s, exit 0. After adding the final filtered-edit assertions, the affected
+  test passed again: 1 passed / 27 deselected in 10.16 s. Earlier focused run: 40 passed in 76.69 s.
+- Four new real PostgreSQL/UI integration regressions cover scoped mission inputs; no unrelated
+  auto-topic choice; explicit selection/navigation retention; editable/cleared scope; source-backed
+  action exclusion despite misleading titles; filtered Accept/Complete/Reopen/Dismiss/Edit with
+  immutable provenance and revision history; All sources; mixed-source research-action exclusion;
+  scoped research-action inclusion; manually opening historical versions; newly completed display.
+- New optional Node.js test executes the shipped JS with DOM event stubs: changed-page click only,
+  no scroll for current-page/non-nav interactions and no duplicate listener after script reinstall.
+  No pixel assertions or timers. Node was available and this test passed.
+- Ruff check .: all checks passed; format --check .: 154 files already formatted; mypy src:
+  no issues in 73 source files. All exit 0. git diff --check: exit 0.
+- Real configured Neon read: 16 actions in All sources, exactly 2 in Office software:
+  Confirm Tool B SSO support; Confirm Tool C data export capability. Both cite source
+  9d87688b-06a7-4cd7-a5d5-ecd41ae6e0bb (Meeting notes about new office software).
+- Fresh local preview 127.0.0.1:8505 verified the two scoped actions, shared selection and Research
+  at top with Office software scope, no unrelated primary brief, editable prefilled topic creation,
+  and question entry. Created the distinct Office software topic and submitted one personal-only
+  mission df99600f-8f4c-4d60-9c40-c0c9a58a71cf. Independent Neon query confirmed collection_ids
+  [35415b67-bbb2-4d19-a984-b590a2739229], public=false, and only the expected collection member.
+  Status was QUEUED; worker/model execution was not verified. Existing sources/analyses/results
+  were not edited. Original preview process was retained; the new verified tab remains open.
+- Live DOM read confirmed scrolled What Matters -> Research: main scroll 1459.2 -> 0;
+  Research -> Actions: main scroll 0 after navigation. Same-page Research refresh stayed scrolled
+  (823.2 -> 751.2 as the temporary success banner disappeared), rather than resetting to top.
+  Local ignored evidence: workspace-context-verification.json, actions-office.png,
+  research-office-start.png, research-office.png under .local-tools/.
+- Full suite, hosted Render deployment, real model inference and Temporal completion not run.
+
+Remaining limits: JS targets the installed Streamlit 1.66.1 main/nav DOM hooks and needs browser
+JavaScript. Test runtime skips the optional JS behavior test if Node is absent. Selections last only
+for the browser session. Multiple Research collections remain a Research-specific scope; the single
+collection selectors show All sources for that case. Existing caps (100 proposals per origin,
+100 topics and 50 missions/results) remain; scoped Actions filters the existing bounded proposal
+projection and does not expand it. Mixed evidence requires All sources. The new mission waits for
+an available research worker. No new ranking/TabPFN logic or persistent context association was added.
+
+---
+
+# Feedback confirmation visibility fix — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Retained all prior unstaged work. No commit/push, migration, architecture or ranking/TabPFN change.
+
+Real configured Neon audit confirmed the meeting-note feedback was already persisted: two explicit
+ACT events for source 9d87688b-06a7-4cd7-a5d5-ecd41ae6e0bb; the second superseded the first.
+The owner browser reproduced the missing-visible-confirmation report: the old success flash was
+rendered at the top of What Matters, above the viewport scrolled to the source's feedback form.
+Persistence was healthy. Workspace.feedback returns only after the repository transaction commits.
+
+Moved the requested Saved. LazyResearch will use this choice to learn your preferences. confirmation
+inside the same source's feedback form, immediately above Save feedback. Owner/source-scoped session
+messages survive reruns. A RepositoryError during the write shows a sanitized inline failure and
+replaces any old success; the correction event pointer advances only after commit. A separate
+projection refresh failure retains the committed acknowledgement plus a sanitized refresh warning.
+Existing append-only feedback/correction semantics and source/observation identities are unchanged.
+
+Verification actually run:
+- Three new real PostgreSQL/Streamlit regressions: 3 passed / 21 deselected in 10.53 s.
+  Independent connection confirms committed ACT; success is inside the submitting form and survives
+  reruns; repeated saves preserve supersedes history. A deferred PostgreSQL constraint trigger rejects
+  COMMIT (isolated test schema), asserting rollback, sanitized inline failure, no stale success and
+  unchanged correction pointer. A post-commit readback failure still acknowledges the durable write.
+- Final focused tests: pytest tests/integration/test_workspace.py tests/integration/test_ranking.py
+  tests/test_presenters.py -q: 52 passed in 72.63 s, exit 0.
+- Ruff check .: all checks passed; Ruff format --check .: 153 files already formatted;
+  mypy src: no issues in 73 source files. All exit 0.
+- Live local owner UI at 127.0.0.1:8504: reran the updated UI without restarting/losing session state;
+  saved the existing Action required choice once and visually confirmed the exact message next to
+  Save feedback. Independent Neon query confirmed three ACT events, all original IDs preserved and
+  the newest superseding the prior event. No source content or existing analyses were changed.
+  Ignored local evidence: .local-tools/feedback-before.json, feedback-after.json,
+  feedback-confirmation.png. The verified filtered view remains open.
+- Full suite, model inference and hosted Render verification/deployment not run for this focused task.
+
+Remaining limits: acknowledgements are browser-session display state; a fresh/explicitly refreshed
+ranking keeps the existing reviewed-source exclusion behavior. No known failing focused checks.
+
+---
+
+# What Matters collection scoping — 2026-10-26
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Retained prior unstaged work. No commit/push, schema migration, deployment or architecture change.
+
+Implemented a Collection selector at the top of What Matters: All sources (default) plus the
+current owner's existing collections. Optional collection_id passes through Workspace.catch_up /
+reviewed, CatchUp.rank and RankingStore.candidates. PostgreSQL applies an owner-qualified EXISTS
+on collection_membership before ordering/limit and before features/ranking. No duplicate candidates
+from many-to-many membership. Unknown/foreign-owner collections yield no candidates. All sources
+keeps existing owner/visibility/unreviewed/cutoff behavior and the existing 50-candidate default.
+
+Ranking rules, feature semantics, deadline/feedback overrides, TabPFN model/evaluation gates and
+owner-wide feedback history are unchanged. The collection selects candidates; it does not create
+separate training histories or model state. Feedback retains the underlying content/observation IDs;
+reviewed-item rereads use the active collection filter. Four count metrics (including zeroes) and
+category headings derive from the same scoped decisions.
+
+Session behavior:
+- Last selected collection uses a non-widget session key so navigation's widget cleanup does not
+  erase it. Picker callback updates that key and invalidates the cached ranking.
+- Ranking display cache is keyed by owner, collection and parsed interests; switching scope or
+  interests reranks, and explicit Refresh remains. Missing/foreign selections fall back to All sources.
+- Creating a collection or successfully saving sources into one on Add Sources carries that choice
+  to What Matters for this browser session. Other sessions still default to All sources; nothing
+  is stored as a global/database preference. Choosing No collection does not override an explicit
+  prior What Matters filter.
+- The read-only navigation measurement helper now seeds matching cache-context metadata so its
+  empty-ranking benchmark cannot accidentally create ranking observations after this change.
+
+Interests now asks What are you interested in right now? (optional), with the owner-requested
+placeholder and help. Comma parsing and case-insensitive exact generated-topic matching remain
+unchanged internally. No fuzzy/semantic interest-matching claim added.
+
+Tests and verification actually run:
+- `pytest tests/test_ranking.py tests/integration/test_ranking.py tests/integration/test_workspace.py -q`:
+  57 passed in 71.06 s, exit 0. Earlier compatibility run: 54 passed in 61.13 s; three new
+  collection tests separately: 3 passed / 18 deselected in 11.45 s.
+- Real isolated PostgreSQL/UI regressions cover All sources across multiple collections/unassigned
+  content; filtered exclusion; filtering before limit=1; owner/unknown-collection isolation; four
+  scoped counts; feedback against the right source and updated counts; navigation retention;
+  creation/save carry-over; another session default; exact-topic vs partial-topic semantics.
+- Ruff check .: all checks passed; Ruff format --check .: 153 files already formatted;
+  mypy src: no issues in 73 source files. All exit 0.
+- Configured Neon read-only candidate check: All sources=8, Office software=1; exact result is
+  Meeting notes about new office software, and every scoped candidate is assigned to that collection.
+- Restarted only the task's local web preview to load changed application/port APIs, retaining the
+  current interest text. Real owner UI at 127.0.0.1:8504 verified All sources, Office software only,
+  count metrics 0 Read / 0 Useful later / 1 Action required / 0 Low priority, updated Interests,
+  and Office software retention after Actions → What Matters. Left this filtered view open.
+  No live feedback labels, source content or analyses changed; normal UI ranking observations persist.
+- Full suite, real TabPFN/model inference, Temporal/search and hosted Render verification: not run
+  for this focused task. git diff --check: exit 0. No known failing focused checks.
+
+Remaining limits: existing unreviewed/default-50 candidate behavior; explicit Refresh is needed
+for external source/membership/feedback changes while reusing a cached view. Session preference
+is lost on session/process reset, intentionally not persisted. Ranking history remains owner-wide.
+Public Render was not redeployed; local preview process remains running. Next remains owner-guided
+manual product walkthrough and final demo/submission preparation.
+
+---
+
+# Analysis queue identity/priority fix verified with real Gemma and Neon — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Prior unstaged work preserved. No commit/push, migrations, model substitution or worker changes.
+
+Root cause established from real Neon processing_run/processing_job/content_analysis records:
+original demo analyses used timeout_seconds=240; the web uses 120. All other recorded model,
+revision, prompt and generation settings match. Timeout is part of the existing fingerprint,
+so the web materialized configuration-refresh jobs even for already-analyzed demo sources.
+The claim query ordered only by job creation time/UUID, putting those refreshes before the
+never-analyzed meeting notes. The UI discarded AnalysisOutcome.analysis_id and showed only
+an unqualified Analysis ready banner. This was successful analysis of other sources, not a
+stale projection or a false Gemma execution.
+
+Real prior click evidence (current config 2bba9ccd…): Synthetic hosted assessment check,
+Installer A quote (10 kWh), Installer B quote (10 kWh), Article: battery safety and fire codes
+all had successful Gemma calls and newly persisted analyses. The earlier My note: why a home
+battery run also used that configuration. The target Meeting notes about new office software
+(content 9d87688b-06a7-4cd7-a5d5-ecd41ae6e0bb) had zero analyses; its config-specific job
+9e36c664-d64e-4743-8758-0a3efbb1bcf0 was PENDING, attempts=0. Its intake placeholder was
+CANCELLED as expected after materialization. Global ANALYZE jobs: 3 PENDING, 12 SUCCEEDED,
+0 RUNNING/FAILED, 8 CANCELLED. Source count=8; persisted analyses=12.
+
+Fix:
+- Claim ordering now prioritizes extractions with no existing analysis over configuration
+  refreshes, then retains oldest job/UUID ordering and SKIP LOCKED/lease behavior. Existing
+  fingerprint/version/history semantics remain intact; no analysis is overwritten or deleted.
+- Structured AnalysisOutcome carries content/job IDs on success and failure. Workspace returns
+  the actual source title and the distinct remaining queued source count for the current config.
+  It rereads the source projection and refuses success if the publication is unavailable there.
+- UI reports Analysis complete: <actual source>, explicitly handles FAILED/IDLE, and reports how
+  many sources remain. Failures retain sanitized text and originals; no broad catch/retry added.
+- ID-only operational logs record claim, model-call start/completion, publication and safe error
+  code. No original text, generated output, titles, endpoints or credentials in those logs.
+
+Live verification through the owner's Analyze next source button after a controlled local web
+restart (application/API imports changed; draft fields preserved):
+- Claimed the exact meeting-notes job above, run 31fca8ed-c608-4f4f-bbf8-f5a4531f707d.
+- Real local Ollama gemma4:e4b, runtime 0.40.9: one call, outcome OK, no repair; 37.2601064 s.
+  Ollama server.log independently records HTTP 200 POST /api/chat, duration 37.2 s.
+- Publication 79f7b979-26e8-40d9-93ed-4aaeaca97eb0 persisted in Neon; job SUCCEEDED, attempt=1;
+  total run duration 37.49686 s. Independent composition reads source READY with summary present.
+- Actual UI shows Analysis complete: Meeting notes about new office software; card Ready;
+  2 sources remain in the analysis queue, with a note that earlier analyses may be refreshed.
+- After: 2 PENDING / 13 SUCCEEDED / 0 RUNNING/FAILED / 8 CANCELLED jobs; analyses 12 → 13.
+  All 12 previous analysis IDs remain. All 8 original source IDs/content hashes remain unchanged.
+  Two existing configuration refreshes were deliberately left queued; no further work drained.
+- Ignored evidence: .local-tools/analysis-state-before.json, analysis-state-after.json and
+  analysis-execution.log. The web process remains at 127.0.0.1:8504; no Render redeploy.
+
+Regression and checks actually run:
+- Real PostgreSQL/UI scenario: old successful analysis at timeout=240, an earlier queued refresh
+  at 120, then new meeting notes. Verifies the new source is analyzed first, exact banner,
+  READY projection, remaining count, next-source identity and historical analysis preservation.
+- Real PostgreSQL/UI failure scenario: UNAVAILABLE yields FAILED and no success banner, retaining
+  the exact source and its original extracted text.
+- Final `pytest tests/integration/test_analysis.py tests/integration/test_workspace.py -q`:
+  44 passed in 78.21 s, exit 0; includes claim concurrency, publication, lease fencing, config
+  history, action/collection/UI regressions and new cases. Earlier focused run: 42 passed in
+  70.87 s; new cases separately 2 passed in 7.76 s.
+- Ruff check .: all checks passed; Ruff format --check .: 153 files already formatted;
+  mypy src: no issues in 73 source files. All exit 0.
+- Full suite, Temporal/research/embedding/search tests and hosted Render checks not run for this
+  focused task. git diff --check: exit 0. No known failing focused checks.
+
+Next remains owner-guided manual product walkthrough and final demo/submission preparation.
+Configuration refresh jobs remain intentional; the UI now identifies the actual completed source
+and prioritizes first-time analysis. Source analysis is explicit/synchronous, not a new background
+worker. Historical generated claims remain unreviewed for factual support.
+
+---
+
+# Real collection failure diagnosed and verified on Neon — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Prior uncommitted collection/copy changes preserved. No commit, push, migration or deployment.
+
+Root cause confirmed in the owner's actual local preview (127.0.0.1:8504): the long-running
+Python process retained application/bootstrap imports from before create_collection existed.
+Callback stderr captured `AttributeError`, missing attribute `create_collection`, at
+ui/app.py:67/create_source_collection. A new browser session in that same old process logged
+`workspace_recomposed collection_api=False current_class_api=False`, confirming stale imported
+classes as well as a stale session resource. This was not a Neon insert/schema failure.
+The earlier isolated PostgreSQL tests started fresh processes/classes and missed this lifecycle.
+
+A fresh application process against the configured Neon database (schema 0006) created
+Office software, with independent read confirmation. The UI now checks retained workspace
+and read-adapter collection capabilities and rebuilds an incompatible session composition
+without clearing draft/session fields. Stale imported modules still require a process restart,
+not merely a page rerun; no unsafe Python module reload/rebinding or broad retry was added.
+Performed that controlled restart of the task's local preview; startup confirmed both API
+flags True. Owner's title/text draft was retained/restored without printing it to logs.
+
+Existing collection exception handling was not broadened. It now emits only exception-chain
+class names, missing attribute identifiers, SQLSTATE and traceback file/line/function locations.
+No exception messages, SQL parameters, collection names, source text or credentials are logged.
+Sanitized UI errors remain. Ignored local diagnostics: .local-tools/collection-diagnostics.log;
+independent verification: .local-tools/collection-verification-result.json.
+
+Real UI + database verification:
+- Office software appears immediately selected after Create collection; success message shown.
+  UI reused the same collection created during direct diagnosis, without a duplicate row.
+- Save sources on the unchanged meeting-notes draft returned Duplicate and assigned the existing
+  source to Office software. Independent Neon connection confirmed collection and membership.
+- Source count remained 8 → 8; one Meeting notes about new office software snapshot remains.
+  Every original source ID/raw-content hash was preserved. Both title/text draft fields matched
+  the captured pre-fix values after successful assignment. No AI/worker execution was requested.
+
+Regression coverage uses real PostgreSQL/application composition:
+- A genuine legacy Workspace method set (without create_collection) retains real repositories;
+  AppTest must recompose via actual bootstrap against an isolated DB, create/select the collection,
+  preserve the draft and persist source membership. No mocked repository or bootstrap factory.
+- A PostgreSQL CHECK constraint deliberately rejects the collection INSERT in an isolated schema;
+  diagnostics contain RepositoryConflict/IntegrityError/SQLSTATE 23514 and stack locations while
+  excluding PRIVATE test inputs. UI remains sanitized and draft values are preserved.
+
+Verification actually run:
+- New legacy-runtime regression: 1 passed in 5.54 s, exit 0.
+- `pytest tests/integration/test_workspace.py -k 'collection or streamlit or navigation or
+  closed_details or partial_brief' -q`: 11 passed, 5 deselected in 27.73 s, exit 0.
+- Ruff check .: all checks passed; Ruff format --check .: 153 files already formatted;
+  mypy src: no issues in 73 source files. All exit 0.
+- Real Neon create/read/assignment/preservation checks passed, including the repaired owner UI.
+- Full suite, Temporal/AI/search integration and hosted Render checks: not run for this focused fix.
+- git diff --check: exit 0. All prior work remains unstaged. Local preview left running on 8504;
+  no research worker was started/stopped or changed. Public Render was not redeployed.
+
+Next remains owner-guided manual product walkthrough and final demo/submission preparation.
+Restart the web process after application API changes; browser refresh alone cannot refresh
+already-imported Python classes. Existing saved sources remain durable across that restart.
+
+---
+
+# Inline collection creation — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Started with the prior copy-only changes still unstaged; retained them. No commit or push.
+
+Add Sources keeps No collection as the default and lists existing collections. + Create
+collection opens an inline name-only form with placeholder e.g. Office software. Creating
+selects the collection for the pending source submission without leaving the page or losing
+its draft. Save sources remains the first/main submit action. Blank/overlong names receive
+inline guidance; successful creation/reuse receives a confirmation. Pasted-text guidance now
+uses the owner's exact shorter wording.
+
+Existing PostgreSQL collection/membership persistence is reused through Workspace.create_collection
+and a narrow WorkspaceReads adapter method. Names are trimmed; existing names are reused
+case-insensitively within the owner scope. An owner-scoped transaction lock serializes creation
+so concurrent duplicates reuse one ID. No migration or architecture change. Collection selector
+reads no longer cap at 100 names, so a newly created collection remains selectable.
+
+Focused verification only:
+- New collection/UI/application tests: 2 passed in 7.08 s; final rerun after typed-query fix:
+  2 passed in 6.35 s, exit 0. Covers blank/overlong names, concurrent duplicate reuse, owner
+  isolation, existing/default options, automatic selection, draft preservation, and persisted
+  membership after saving a source, using real isolated PostgreSQL schemas.
+- `pytest tests/integration/test_workspace.py -k 'streamlit or navigation or closed_details or
+  partial_brief or collection' -q`: 9 passed, 5 deselected in 23.85 s, exit 0.
+- Ruff check and format --check for the six changed Python files: passed, exit 0.
+- mypy src: no issues in 73 source files, exit 0. Initial Any-return finding corrected by
+  selecting typed CollectionRow objects; focused creation tests rerun afterward.
+- Full suite, other integration suites, live browser/hosted tests: not run for this task,
+  per the request for focused UI/application tests only. git diff --check: exit 0.
+
+Next remains owner-guided manual product walkthrough and final demo/submission preparation;
+include collection creation/reuse and source assignment in that walkthrough. Collection
+editing/deletion are outside scope. No new known failing focused checks. These changes have
+not been deployed; no shared demo data was written by the tests.
+
+---
+
+# Generic input copy and batching guidance — 2026-10-25
+
+Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant unavailable.
+Replaced URL/title/pasted-text/research placeholders with the owner's generic wording; topic
+and interests examples are generic too. Simplified email availability copy. Added URL/file
+batching help and short pasted-text guidance: prefer one item per save; visible ITEM dividers
+can separate related blocks, which remain one combined source. Home Battery sample fixtures,
+backend behavior and architecture are unchanged. No commit or push.
+
+Relevant presenter/UI tests only: 19 passed in 25.16 s, exit 0 (`tests/test_presenters.py`
+plus six existing Streamlit/navigation/lazy-detail/partial-brief tests in
+`tests/integration/test_workspace.py`). Full suite, lint/type checks and live browser checks
+not rerun, as requested for this copy-only task. `rtk git diff --check`: exit 0.
+Next remains owner-guided manual product walkthrough and final demo/submission preparation.
+
+---
+
 # UX/onboarding task completed locally — 2026-10-25
 
 Recommended Codex GPT-6.1 Sol / Medium; Claude Code Sonnet 5. Exact active variant not

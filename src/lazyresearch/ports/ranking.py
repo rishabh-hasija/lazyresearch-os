@@ -33,6 +33,7 @@ class RankingStore(Protocol):
         interests: tuple[str, ...],
         limit: int,
         content_id: ContentId | None = None,
+        collection_id: UUID | None = None,
     ) -> tuple[RankingInput, ...]: ...
 
     def history(self, owner: OwnerId, cutoff: datetime) -> tuple[LabeledExample, ...]: ...

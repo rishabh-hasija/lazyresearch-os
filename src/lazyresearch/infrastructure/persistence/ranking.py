@@ -29,7 +29,10 @@ from lazyresearch.infrastructure.persistence.ranking_models import (
     InteractionRow,
     RankingObservationRow,
 )
-from lazyresearch.infrastructure.persistence.retrieval_models import RetrievalStateRow
+from lazyresearch.infrastructure.persistence.retrieval_models import (
+    MembershipRow,
+    RetrievalStateRow,
+)
 from lazyresearch.ports.errors import RepositoryConflict, RepositoryError
 
 
@@ -57,6 +60,7 @@ class PostgreSQLRankingStore:
         interests: tuple[str, ...],
         limit: int,
         content_id: ContentId | None = None,
+        collection_id: UUID | None = None,
     ) -> tuple[RankingInput, ...]:
         cutoff = utc_instant(cutoff, "cutoff")
         if cutoff > datetime.now(UTC) or not 1 <= limit <= 100:
@@ -78,6 +82,16 @@ class PostgreSQLRankingStore:
                     | (RetrievalStateRow.visibility == "ACTIVE"),
                 )
             )
+            if collection_id is not None:
+                query = query.where(
+                    select(MembershipRow.content_id)
+                    .where(
+                        MembershipRow.owner_id == owner,
+                        MembershipRow.content_id == ContentRow.id,
+                        MembershipRow.collection_id == collection_id,
+                    )
+                    .exists()
+                )
             if content_id is not None:
                 query = query.where(ContentRow.id == content_id)
             else:

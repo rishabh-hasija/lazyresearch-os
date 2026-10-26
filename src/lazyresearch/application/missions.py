@@ -53,27 +53,35 @@ class ResearchOperations:
         limitations = []
         if scope.personal:
             self.retrieval.store.index(OwnerId(owner), self.retrieval.chunks)
-            result = self.retrieval.retrieve(
-                RetrievalRequest(
-                    owner_id=OwnerId(owner),
-                    query=str(self.store.context(owner, mission)["question"]),
-                    collection_ids=scope.collection_ids,
-                    lexical=scope.lexical,
-                    vector=scope.vector,
-                    limit=min(scope.max_evidence, self.retrieval.default_limit),
-                    per_source=self.retrieval.default_per_source,
-                )
+            request = RetrievalRequest(
+                owner_id=OwnerId(owner),
+                query=str(self.store.context(owner, mission)["question"]),
+                collection_ids=scope.collection_ids,
+                lexical=scope.lexical,
+                vector=scope.vector,
+                limit=min(scope.max_evidence, self.retrieval.default_limit),
+                per_source=self.retrieval.default_per_source,
             )
-            evidence = self.store.candidates(
-                owner,
-                mission,
-                tuple(c.chunk.id for c in result.candidates),
-                "PERSONAL",
+            result = self.retrieval.retrieve(request)
+            candidates = result.candidates
+            method = (
                 "hybrid"
                 if scope.vector and scope.lexical
                 else "vector"
                 if scope.vector
-                else "lexical",
+                else "lexical"
+            )
+            if not candidates and scope.collection_ids:
+                # A natural question need not repeat every word of its saved sources.
+                # An explicit collection is useful context, not a claim of lexical/semantic match.
+                candidates = self.retrieval.store.collection_context(
+                    request, self.retrieval.chunks.identity
+                )
+                if candidates:
+                    method = "collection_context"
+                    limitations.append("selected_collection_context_used_without_question_match")
+            evidence = self.store.candidates(
+                owner, mission, tuple(c.chunk.id for c in candidates), "PERSONAL", method
             )
             if scope.vector and result.vector_status != "USED":
                 limitations.append("semantic_retrieval_unavailable_lexical_fallback")

@@ -30,6 +30,7 @@ def main():
     app.session_state["workspace"] = work
     # Repeat-visit ranking state, without creating observations during a read-only measure.
     app.session_state["ranking"] = ()
+    app.session_state["ranking-scope"] = (work.owner, None, ())
     counts = [0]
 
     def count(*_args):

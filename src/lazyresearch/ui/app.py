@@ -1,7 +1,9 @@
 """Run with streamlit run; bootstrap is the only infrastructure composition entry."""
 
 import json
+import logging
 import os
+import traceback
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -10,8 +12,10 @@ import streamlit as st
 from lazyresearch.application.mission_models import MissionEvidence
 from lazyresearch.application.relevance_models import Relevance
 from lazyresearch.application.workspace import Workspace
+from lazyresearch.application.workspace_models import MissionView
 from lazyresearch.bootstrap import build_workspace, system_health
 from lazyresearch.domain.actions import ActionStatus, Deadline
+from lazyresearch.ports.errors import RepositoryError
 from lazyresearch.ui.presenters import (
     GROUPS,
     action_description,
@@ -60,35 +64,107 @@ def source_details(work: Workspace, identity: UUID) -> None:
         st.success("Retry queued. Use Analyze next source to run it.")
 
 
+def create_source_collection(work: Workspace) -> None:
+    try:
+        identity = work.create_collection(st.session_state.get("new-collection-name", ""))
+    except ValueError:
+        st.session_state["collection-error"] = "Enter a collection name (up to 120 characters)."
+    except Exception as exc:
+        # Never log names, source text, credentials, SQL parameters or exception messages.
+        cause: BaseException | None = exc
+        while cause is not None:
+            logging.getLogger(__name__).error(
+                "collection_create_failed exception=%s attribute=%s sqlstate=%s frames=%s",
+                type(cause).__name__,
+                getattr(cause, "name", None) if isinstance(cause, AttributeError) else None,
+                getattr(cause, "sqlstate", None),
+                [
+                    (frame.filename, frame.lineno, frame.name)
+                    for frame in traceback.extract_tb(cause.__traceback__)
+                ],
+            )
+            cause = cause.__cause__
+        st.session_state["collection-error"] = error_message(exc)
+    else:
+        st.session_state["source-collection"] = identity
+        st.session_state["workspace-collection"] = identity
+        st.session_state["collection-editor-open"] = False
+        st.session_state.pop("collection-error", None)
+        st.session_state["collection-notice"] = "Collection ready and selected."
+
+
 def add_sources(work: Workspace) -> None:
     st.header("Add Sources")
     st.write("Save URLs, documents and notes first. Analyze them when you are ready.")
-    st.caption("Email/Gmail is not connected yet. Paste email text or upload a supported export.")
+    st.caption(
+        "Email connection isn’t available yet. You can paste email text or upload a supported file."
+    )
     if st.button("Load sample sources"):
         st.session_state["receipt"] = work.load_demo()
         st.session_state.pop("ranking", None)
-    collections = dict(work.reads.collections(work.owner))
+    collections, active = active_collection(work)
+    if st.session_state.get("source-context") != active:
+        st.session_state["source-collection"] = active
+        st.session_state["source-context"] = active
+    if st.session_state.get("source-collection") not in collections:
+        st.session_state["source-collection"] = None
     with st.form("add-sources"):
-        urls = st.text_area("URLs — one per line", placeholder="https://example.com/battery-guide")
+        urls = st.text_area(
+            "URLs — one per line",
+            placeholder="https://example.com/article",
+            help="Multiple URLs are allowed. Enter one URL per line.",
+        )
         uploads = st.file_uploader(
             "TXT, Markdown or PDF files",
             type=["txt", "md", "markdown", "pdf"],
             accept_multiple_files=True,
+            help="Upload multiple TXT, Markdown, or PDF files together.",
             max_upload_size=max(1, work.intake.limits.max_upload_bytes // (1024 * 1024)),
         )
         title = st.text_input(
-            "Title for pasted text (optional)", placeholder="Home battery installer notes"
+            "Title for pasted text (optional)", placeholder="e.g. Notes from a meeting"
         )
         text = st.text_area(
             "Pasted text",
-            placeholder="Paste notes, an article excerpt or exported email text here…",
+            placeholder=(
+                "Paste an email, note, article excerpt, meeting notes, or any text you want "
+                "LazyResearch to organize..."
+            ),
+        )
+        st.caption(
+            "Best results: save one email, note, or article at a time. If you combine several "
+            "text blocks, separate them clearly. They'll still be stored as one source."
         )
         collection = st.selectbox(
             "Collection (optional)",
             [None, *collections],
+            key="source-collection",
             format_func=lambda value: collections[value] if value else "No collection",
         )
-        submitted = st.form_submit_button("Save sources", type="primary")
+        save_column, create_column = st.columns(2)
+        with save_column:
+            submitted = st.form_submit_button("Save sources", type="primary")
+        with create_column:
+            if st.form_submit_button("+ Create collection"):
+                st.session_state["collection-editor-open"] = True
+                st.session_state.pop("collection-error", None)
+    if st.session_state.get("collection-editor-open"):
+        with st.form("create-source-collection"):
+            st.text_input(
+                "Collection name",
+                placeholder="e.g. Office software",
+                max_chars=120,
+                key="new-collection-name",
+            )
+            st.form_submit_button(
+                "Create collection",
+                on_click=create_source_collection,
+                args=(work,),
+            )
+        if message := st.session_state.get("collection-error"):
+            st.warning(message)
+    if notice := st.session_state.pop("collection-notice", None):
+        st.success(notice)
     if submitted:
         entries = inputs(urls, tuple((f.name, f.getvalue()) for f in uploads), text, title)
         if not entries:
@@ -97,6 +173,8 @@ def add_sources(work: Workspace) -> None:
             with st.spinner("Saving sources and extracting text…"):
                 receipt = work.add(str(uuid4()), entries, collection=collection)
             st.session_state["receipt"] = receipt
+            if collection and any(entry.content_id for entry in receipt.entries):
+                st.session_state["workspace-collection"] = collection
             st.session_state.pop("ranking", None)
     last_receipt = st.session_state.get("receipt")
     if last_receipt:
@@ -113,15 +191,23 @@ def add_sources(work: Workspace) -> None:
     if st.button("Analyze next source"):
         with st.spinner("Analyzing one saved source with the configured model…"):
             outcome = work.process()
-        if outcome.startswith("FAILED"):
+        if outcome.status == "FAILED":
             st.warning(
-                "Analysis failed or the model is unavailable. The original "
-                "remains saved. Retry from its source details."
+                "Analysis failed: "
+                + plain(outcome.source_title or "Saved source")
+                + ". The model could not complete this analysis. The original remains saved. "
+                "Retry from its source details."
             )
-        elif outcome == "IDLE":
-            st.info("No pending source analysis.")
-        else:
-            st.success("Analysis ready.")
+        elif outcome.status == "IDLE":
+            st.info("No pending source analysis for the current settings.")
+        elif outcome.status == "SUCCEEDED":
+            st.success("Analysis complete: " + plain(outcome.source_title or "Saved source"))
+        if outcome.remaining_sources:
+            noun = "source remains" if outcome.remaining_sources == 1 else "sources remain"
+            st.caption(
+                f"{outcome.remaining_sources} {noun} in the analysis queue. "
+                "Queued work can include refreshing earlier analyses."
+            )
         st.session_state.pop("ranking", None)
     with st.spinner("Loading your saved sources…", show_time=True):
         sources = work.reads.sources(work.owner)
@@ -138,20 +224,59 @@ def add_sources(work: Workspace) -> None:
                 source_details(work, source.id)
 
 
+def active_collection(work: Workspace) -> tuple[dict[UUID, str], UUID | None]:
+    collections = dict(work.reads.collections(work.owner))
+    # Retain the prior What Matters selection in an already open browser session.
+    if "workspace-collection" not in st.session_state:
+        st.session_state["workspace-collection"] = st.session_state.get("what-matters-scope")
+    selected = st.session_state.get("workspace-collection")
+    if selected not in collections:
+        selected = None
+        st.session_state["workspace-collection"] = None
+    return collections, selected
+
+
+def select_workspace_collection(key: str) -> None:
+    st.session_state["workspace-collection"] = st.session_state[key]
+    st.session_state.pop("ranking", None)
+
+
+def collection_selector(work: Workspace, key: str) -> UUID | None:
+    collections, selected = active_collection(work)
+    st.session_state[key] = selected
+    return st.selectbox(
+        "Collection",
+        [None, *collections],
+        key=key,
+        format_func=lambda value: collections[value] if value else "All sources",
+        on_change=select_workspace_collection,
+        args=(key,),
+    )
+
+
 def catch_up(work: Workspace) -> None:
     st.header("What Matters")
-    if notice := st.session_state.pop("feedback-notice", None):
-        st.success(notice)
+    collection = collection_selector(work, "what-matters-collection-picker")
+    st.session_state.pop("feedback-notice", None)  # Retire the old off-screen page-level flash.
     interests = st.text_input(
-        "Interests (optional, comma-separated exact topics)",
-        placeholder="Home energy, batteries, warranties",
+        "What are you interested in right now? (optional)",
+        placeholder="e.g. work software, travel plans, home renovation",
+        help="This can help prioritize matching saved items. Leave it blank if you want "
+        "LazyResearch to decide from your saved material.",
     )
-    if st.button("Refresh What Matters", type="primary") or "ranking" not in st.session_state:
+    wanted = tuple(t.strip() for t in interests.split(",") if t.strip())
+    scope = (work.owner, collection, wanted)
+    if (
+        st.button("Refresh What Matters", type="primary")
+        or "ranking" not in st.session_state
+        or st.session_state.get("ranking-scope") != scope
+    ):
         with st.spinner("Finding what matters…"):
-            st.session_state["ranking"] = work.catch_up(
-                tuple(t.strip() for t in interests.split(",") if t.strip())
-            )
+            st.session_state["ranking"] = work.catch_up(wanted, collection_id=collection)
+            st.session_state["ranking-scope"] = scope
     decisions = st.session_state["ranking"]
+    for column, (label, heading) in zip(st.columns(4), GROUPS.items(), strict=True):
+        column.metric(heading, sum(d.label.value == label for d in decisions))
     if not decisions:
         st.info(
             "Nothing unreviewed right now. Add sources or inspect reviewed "
@@ -183,6 +308,8 @@ def catch_up(work: Workspace) -> None:
             if panel.open:
                 with panel:
                     source_details(work, source.id)
+            message_key = f"feedback-message-{work.owner}-{decision.item.content_id}"
+            refresh_key = f"feedback-refresh-{work.owner}-{decision.item.content_id}"
             with st.form(f"feedback-{decision.id}"):
                 correction = st.selectbox(
                     "Your choice",
@@ -190,24 +317,53 @@ def catch_up(work: Workspace) -> None:
                     format_func=lambda value: GROUPS[value],
                     index=list(GROUPS).index(label),
                 )
+                if message := st.session_state.get(message_key):
+                    if message[0] == "success":
+                        st.success(message[1])
+                    else:
+                        st.error(message[1])
+                if refresh_message := st.session_state.get(refresh_key):
+                    st.warning(refresh_message)
                 if st.form_submit_button("Save feedback"):
+                    st.session_state.pop(message_key, None)
+                    st.session_state.pop(refresh_key, None)
                     key = f"feedback-event-{decision.item.content_id}"
-                    event = work.feedback(
-                        decision, Relevance(correction), expected_event=st.session_state.get(key)
-                    )
-                    st.session_state[key] = event
-                    updated = work.reviewed(
-                        decision.item.content_id,
-                        tuple(t.strip() for t in interests.split(",") if t.strip()),
-                    )
-                    st.session_state["ranking"] = tuple(
-                        updated if d.item.content_id == decision.item.content_id else d
-                        for d in decisions
-                        if updated or d.item.content_id != decision.item.content_id
-                    )
-                    st.session_state["feedback-notice"] = (
-                        "Explicit feedback saved. Your choice is shown below."
-                    )
+                    try:
+                        event = work.feedback(
+                            decision,
+                            Relevance(correction),
+                            expected_event=st.session_state.get(key),
+                        )
+                    except RepositoryError as exc:
+                        st.session_state[message_key] = (
+                            "error",
+                            "Could not save this choice. " + error_message(exc),
+                        )
+                    else:
+                        # interact() has returned after its transaction committed. Set the
+                        # acknowledgement before the independent projection refresh.
+                        st.session_state[key] = event
+                        st.session_state[message_key] = (
+                            "success",
+                            "Saved. LazyResearch will use this choice to learn your preferences.",
+                        )
+                        try:
+                            updated = work.reviewed(
+                                decision.item.content_id,
+                                wanted,
+                                collection_id=collection,
+                            )
+                        except RepositoryError:
+                            st.session_state[refresh_key] = (
+                                "Your choice was saved, but this view could not refresh. "
+                                "Use Refresh What Matters to reload it."
+                            )
+                        else:
+                            st.session_state["ranking"] = tuple(
+                                updated if d.item.content_id == decision.item.content_id else d
+                                for d in decisions
+                                if updated or d.item.content_id != decision.item.content_id
+                            )
                     st.rerun()
 
 
@@ -229,15 +385,15 @@ def evidence(work: Workspace, raw: dict[str, Any]) -> None:
         st.link_button("Open source URL", link, key=f"url-{e.id}-{uuid4()}")
 
 
-def render_result(work: Workspace, result: Any) -> None:
+def render_result(work: Workspace, result: Any, *, context: str = "history") -> None:
     st.caption(
         f"Published version {result.version} · research run {result.run_sequence} · "
         f"{result.published_at:%d %b %Y %H:%M %Z}"
     )
     if result.coverage == "PARTIAL":
         st.warning(
-            "Partial coverage: some information or sources were unavailable. "
-            "Review the limitations below."
+            "Partial coverage: this brief is available, but has limited coverage. "
+            "Review the stored limitations below before relying on it."
         )
     p = result.payload
     registry = {str(e["id"]): e for e in p["evidence"]}
@@ -251,13 +407,16 @@ def render_result(work: Workspace, result: Any) -> None:
         "action_candidates",
     ):
         value = p["brief"].get(name)
-        if not value:
+        if not value and name not in {"answer", "summary", "findings", "recommendations"}:
             continue
         st.subheader(
             {"action_candidates": "Proposed actions", "claims": "Additional claims"}.get(
                 name, name.capitalize()
             )
         )
+        if not value:
+            st.caption(f"This brief has no published {name}.")
+            continue
         for index, claim in enumerate(value if isinstance(value, list) else [value], 1):
             st.markdown(
                 plain(claim_text(claim.get("text", claim.get("title", "")), tuple(registry)))
@@ -271,7 +430,7 @@ def render_result(work: Workspace, result: Any) -> None:
             st.caption("Evidence links validated; factual support is unreviewed.")
             panel = st.expander(
                 f"Evidence for {name.replace('_', ' ')} {index}",
-                key=f"claim-{result.id}-{name}-{index}",
+                key=f"{context}-claim-{result.id}-{name}-{index}",
                 on_change="rerun",
             )
             if panel.open:
@@ -286,7 +445,7 @@ def render_result(work: Workspace, result: Any) -> None:
             st.caption("Unresolved · heuristic detection")
             panel = st.expander(
                 "Inspect conflicting evidence",
-                key=f"conflict-{result.id}-{conflict_index}",
+                key=f"{context}-conflict-{result.id}-{conflict_index}",
                 on_change="rerun",
             )
             if panel.open:
@@ -307,6 +466,13 @@ def render_result(work: Workspace, result: Any) -> None:
         st.subheader("Coverage limitations")
         for line in limits:
             st.markdown(plain(line.replace("_", " ")))
+            if line == "insufficient_personal_sources":
+                st.caption("There were too few saved sources for broad verification.")
+            elif line == "selected_collection_context_used_without_question_match":
+                st.caption(
+                    "Evidence was sampled from your selected collection because no source "
+                    "matched every word of the question. Relevance and completeness are limited."
+                )
     st.subheader("What changed")
     if result.baseline_version is None:
         st.caption("First brief — no earlier baseline to compare.")
@@ -349,43 +515,101 @@ def render_result(work: Workspace, result: Any) -> None:
         st.info("Model-only changes were detected; source evidence did not change.")
 
 
+def select_research_scope() -> None:
+    selected = st.session_state["research-collections-picker"]
+    st.session_state["research-scope"] = selected
+    active = selected[0] if len(selected) == 1 else None
+    st.session_state["workspace-collection"] = active
+    st.session_state["research-context"] = active
+    st.session_state.pop("ranking", None)
+
+
+def select_research_topic(scope: tuple[UUID, ...]) -> None:
+    st.session_state.setdefault("research-topics-by-scope", {})[scope] = st.session_state[
+        "research-topic-picker"
+    ]
+    st.session_state["research-topic-editor"] = False
+
+
 def research(work: Workspace) -> None:
     st.header("Research")
+    st.subheader("Start / Ask Research")
+    collections, active = active_collection(work)
+    if (
+        "research-scope" not in st.session_state
+        or st.session_state.get("research-context") != active
+    ):
+        st.session_state["research-scope"] = [active] if active else []
+        st.session_state["research-context"] = active
+        st.session_state["research-topic-editor"] = False
+    st.session_state["research-collections-picker"] = [
+        c for c in st.session_state["research-scope"] if c in collections
+    ]
+    selected_collections = st.multiselect(
+        "Limit to collections (optional)",
+        list(collections),
+        key="research-collections-picker",
+        format_func=lambda value: collections[value],
+        on_change=select_research_scope,
+    )
+    scope = tuple(sorted(selected_collections))
+    st.caption(
+        "Collections choose saved sources. A research topic groups your questions and briefs."
+    )
+    with st.spinner("Opening your research…", show_time=True):
+        topics_by_id = {t.id: t for t in work.reads.topics(work.owner)}
+    choices = st.session_state.setdefault("research-topics-by-scope", {})
+    selected_topic = choices.get(scope)
+    st.session_state["research-topic-picker"] = (
+        selected_topic if selected_topic in topics_by_id else None
+    )
+    topic_id = st.selectbox(
+        "Research topic",
+        [None, *topics_by_id],
+        key="research-topic-picker",
+        format_func=lambda identity: (
+            topics_by_id[identity].title if identity else "Choose a topic…"
+        ),
+        on_change=select_research_topic,
+        args=(scope,),
+    )
+    if st.button("+ New research topic"):
+        st.session_state["research-topic-editor"] = True
+    if topic_id is None or st.session_state.get("research-topic-editor"):
+        if not topics_by_id:
+            st.info("Create a topic for your first research question.")
+        with st.form("new-topic"):
+            title = st.text_input(
+                "New topic name",
+                value=collections[active] if active else "",
+                placeholder="e.g. Project planning",
+                key=f"research-new-topic-{scope}",
+            )
+            if st.form_submit_button("Create topic"):
+                if not title.strip():
+                    st.warning("Enter a topic name.")
+                else:
+                    created = work.mission_commands.create_topic(work.owner, title.strip())
+                    choices[scope] = created.id
+                    st.session_state["research-topic-editor"] = False
+                    st.rerun()
+    if topic_id is None:
+        with st.expander("Previous research"):
+            st.caption("Choose an existing research topic above to open its missions and briefs.")
+        return
+    topic = topics_by_id[topic_id]
     st.caption(
         "Research continues through the separate research worker, even when you leave this page. "
         "Requests are saved in PostgreSQL; refresh to read actual progress. "
         "Worker availability is not confirmed here. Use System status to check service access."
     )
-    with st.form("new-topic"):
-        title = st.text_input("New topic name", placeholder="Home battery decision")
-        if st.form_submit_button("Create topic"):
-            work.mission_commands.create_topic(work.owner, title.strip())
-            st.success("Topic created.")
-    with st.spinner("Opening your research…", show_time=True):
-        topics = work.reads.topics(work.owner)
-    if not topics:
-        st.info("Create a topic for your first research question.")
-        return
-    topics_by_id = {t.id: t for t in topics}
-    topic_id = st.selectbox(
-        "Research topic",
-        list(topics_by_id),
-        format_func=lambda identity: topics_by_id[identity].title,
-    )
-    topic = topics_by_id[topic_id]
     with st.form("mission"):
         question = st.text_area(
             "Research question",
             max_chars=500,
-            placeholder="Should I buy a 10 kWh home battery now, and what should I verify first?",
+            placeholder="e.g. What are the main points, what changed, and what should I do next?",
         )
         public = st.checkbox("Allow current public web search", value=False)
-        collections = dict(work.reads.collections(work.owner))
-        selected_collections = st.multiselect(
-            "Limit to collections (optional)",
-            list(collections),
-            format_func=lambda value: collections[value],
-        )
         if not work.public_available:
             st.caption(
                 "Current web search is unavailable: no search key is "
@@ -402,24 +626,71 @@ def research(work: Workspace) -> None:
                 "Refresh to follow progress."
             )
     st.button("Refresh research")
-    for mission in work.reads.missions(work.owner, topic.id):
-        st.markdown("**" + plain(mission.question) + "**")
-        st.write(mission_status(mission.status, mission.stage))
-        if mission.status == "QUEUED":
-            st.caption(
-                "Waiting for the research service. If this stays queued, "
-                "check the worker/server setup in README."
-            )
-        if mission.status == "FAILED":
-            st.warning(
-                "Research could not finish. Check the configured "
-                "model/research services and try a new request. Your previous "
-                "brief is retained."
-            )
-        if mission.status in {"QUEUED", "RUNNING"}:
-            if st.button("Cancel research", key=f"cancel-{mission.id}"):
-                work.cancel(mission.id)
-                st.rerun()
+    missions = work.reads.missions(work.owner, topic.id)
+    # Preserve Current Brief policy when reruns fail or finish out of order.
+    current = next(
+        (m for m in missions if m.result_id and m.result_id == topic.current_result_id), None
+    )
+    st.subheader("Current research")
+    if current:
+        research_mission(work, current, current=True)
+    else:
+        st.info("No published brief yet. Research results appear here after publication.")
+    pending = tuple(m for m in missions if m.status in {"QUEUED", "RUNNING"})
+    if pending:
+        st.subheader("Research in progress")
+        for mission in pending:
+            research_mission(work, mission)
+    history_key = f"research-history-{topic.id}"
+    panel = st.expander("Previous research", key=history_key, on_change="rerun")
+    if panel.open:
+        with panel:
+            for mission in missions:
+                if mission != current and mission not in pending:
+                    research_mission(work, mission)
+            research_history(work, topic)
+
+
+def research_mission(work: Workspace, mission: MissionView, *, current: bool = False) -> None:
+    st.markdown("**" + plain(mission.question) + "**")
+    st.caption(f"Research run {mission.run_sequence}")
+    st.write(mission_status(mission.status, mission.stage))
+    if mission.status == "QUEUED":
+        st.caption(
+            "Waiting for the research service. If this stays queued, "
+            "check the worker/server setup in README."
+        )
+    if mission.status == "FAILED":
+        st.warning(
+            "Research could not finish. Check the configured "
+            "model/research services and try a new request. Your previous brief is retained."
+        )
+    if mission.status in {"QUEUED", "RUNNING"}:
+        if st.button("Cancel research", key=f"cancel-{mission.id}"):
+            work.cancel(mission.id)
+            st.rerun()
+    if mission.status not in {"COMPLETED", "PARTIAL"}:
+        return
+    if not mission.result_id:
+        st.info("No published result is available for this mission.")
+        return
+    if mission.status == "PARTIAL":
+        st.caption(
+            "This result is based on limited evidence. Review the coverage limitations below."
+        )
+    open_key = f"research-open-{mission.id}"
+    if not current and st.button("Open brief", key=f"view-result-{mission.id}"):
+        st.session_state[open_key] = True
+    if current or st.session_state.get(open_key):
+        with st.spinner("Opening your brief…", show_time=True):
+            result = work.reads.result(work.owner, mission.result_id)
+        if result is None:
+            st.info("This published result is no longer available.")
+        else:
+            render_result(work, result, context=f"mission-{mission.id}")
+
+
+def research_history(work: Workspace, topic: Any) -> None:
     with st.spinner("Loading your briefs and history…", show_time=True):
         versions = work.reads.results(work.owner, topic.id)
     if not versions:
@@ -456,8 +727,15 @@ def actions(work: Workspace) -> None:
         "Review source-backed proposals. Accepting or completing an action "
         "records your decision here."
     )
+    collection = collection_selector(work, "actions-collection-picker")
+    if collection:
+        st.caption(
+            "Only actions whose cited sources all belong to this collection are shown. "
+            "Actions with mixed or unassigned sources are available under All sources."
+        )
     with st.spinner("Loading your actions…", show_time=True):
-        items = work.actions()
+        items = work.actions(collection_id=collection)
+    st.caption(f"{len(items)} actions")
     if not items:
         st.info(
             "No proposed actions yet. Analyze a source with an explicit task "
@@ -533,6 +811,24 @@ SECTIONS = {
     "Actions": actions,
 }
 
+NAVIGATION_SCROLL = """
+<script>
+(() => {
+    if (window.lazyResearchNavigationScroll) {
+        document.removeEventListener("click", window.lazyResearchNavigationScroll, true);
+    }
+    window.lazyResearchNavigationScroll = (event) => {
+        const button = event.target.closest(".st-key-workspace-navigation button");
+        if (!button || button.getAttribute("kind") === "primary") return;
+        const main = document.querySelector('[data-testid="stMain"]');
+        if (main) main.scrollTo({top: 0, left: 0, behavior: "instant"});
+    };
+    document.addEventListener("click", window.lazyResearchNavigationScroll, true);
+})();
+</script>
+"""
+
+
 NAVIGATION_CSS = """
 <style>
 .st-key-workspace-navigation button {
@@ -575,8 +871,20 @@ def workspace_content() -> None:
                 args=(label,),
             )
     try:
-        if "workspace" not in st.session_state:
+        cached = st.session_state.get("workspace")
+        if (
+            cached is None
+            or not callable(getattr(cached, "create_collection", None))
+            or not callable(getattr(cached.reads, "create_collection", None))
+        ):
+            # A live development session can retain pre-collection class instances.
+            # Replace only the composition object; keep form drafts and other UI state.
             st.session_state["workspace"] = build_workspace()
+            logging.getLogger(__name__).warning(
+                "workspace_recomposed collection_api=%s current_class_api=%s",
+                callable(getattr(st.session_state["workspace"], "create_collection", None)),
+                callable(getattr(Workspace, "create_collection", None)),
+            )
         work = st.session_state["workspace"]
         SECTIONS[section](work)
     except Exception as exc:
@@ -591,6 +899,7 @@ def workspace_content() -> None:
 def main() -> None:
     st.set_page_config(page_title="LazyResearch OS", page_icon="📚", layout="centered")
     st.html(NAVIGATION_CSS)
+    st.html(NAVIGATION_SCROLL, unsafe_allow_javascript=True)
     st.title("LazyResearch OS")
     st.caption("Save the reading. Find what matters. Keep the evidence.")
     if os.environ.get("APP_ENV") == "demo":

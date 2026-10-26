@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from threading import Event
 from uuid import uuid4
 
@@ -224,3 +225,131 @@ def test_collection_scope_and_invalid_frozen_locator(mission_setup):
         ops.store.freeze(owner, m2.id, (evidence[0].model_copy(update={"quote": "tampered"}),))
     with pytest.raises(MissionError):
         ops.store.freeze(owner, m2.id, (evidence[0].model_copy(update={"owner_id": uuid4()}),))
+
+
+OFFICE_QUESTION = "What should we verify before choosing office software?"
+
+
+@pytest.fixture
+def office_mission_setup(mission_setup):
+    ops, owner, _, pages, search, synthesis = mission_setup
+    receipt = ops.intake.ingest(
+        owner,
+        "office-note",
+        (
+            IntakeInput(
+                source_type=SourceType.TEXT,
+                title="Meeting notes about new office software",
+                payload=(
+                    b"Compare Tool B SSO support and Tool C data export capability before deciding."
+                ),
+            ),
+        ),
+    )
+    content = receipt.entries[0].content_id
+    collection = ops.retrieval.store.create_collection(owner, "Office software")
+    ops.retrieval.store.add_to_collection(owner, collection, content)
+    ops.retrieval.store.index(owner, ops.retrieval.chunks)
+    topic = ops.store.create_topic(owner, "Office software")
+    return ops, owner, topic, collection, content
+
+
+def test_office_question_empty_lexical_match_uses_scoped_evidence_without_relaxing_freeze(
+    db, office_mission_setup
+):
+    from lazyresearch.application.retrieval_models import RetrievalRequest
+    from lazyresearch.infrastructure.persistence.mission_models import MissionRow
+
+    ops, owner, topic, collection, content = office_mission_setup
+    scope = MissionScope(collection_ids=(collection,), public=False)
+    request = RetrievalRequest(owner, OFFICE_QUESTION, collection_ids=(collection,))
+    assert ops.retrieval.retrieve(request).candidates == ()
+    # Persist the actual old search result and reproduce its rejected application operation.
+    failed = ops.store.create_mission(owner, topic.id, OFFICE_QUESTION, scope)
+    ops.store.start(owner, failed.id)
+    ops.store.save_stage(owner, failed.id, "personal_search", {"evidence": [], "limitations": []})
+    ops.gap_detection(owner, failed.id)
+    ops.select_sources(owner, failed.id)
+    with pytest.raises(MissionError, match="^NO_EVIDENCE$"):
+        ops.freeze_evidence(owner, failed.id)
+    ops.store.terminal(owner, failed.id, "FAILED", "WORKFLOW_FAILED")
+    clean = ops.store.create_mission(owner, topic.id, OFFICE_QUESTION, scope)
+    prepare(ops, owner, clean.id)
+    evidence = ops.store.evidence(owner, clean.id)
+    assert evidence and {e.content_id for e in evidence} == {content}
+    assert {e.method for e in evidence} == {"collection_context"}
+    ops.store.validate_evidence(owner, clean.id)
+    ops.freeze_evidence(owner, clean.id)  # Already frozen retry remains idempotent.
+    result = ops.store.publish(owner, clean.id)
+    assert ops.store.publish(owner, clean.id) == result
+    saved = ops.store.get_result(owner, result)
+    assert saved.coverage.value == "PARTIAL"
+    assert "selected_collection_context_used_without_question_match" in saved.limitations
+    assert len(ops.store.versions(owner, topic.id)) == 1
+    assert not ops.search.calls and not ops.intake.fetcher.calls
+    with db.connect() as c:
+        assert (
+            c.execute(select(MissionRow.status).where(MissionRow.id == failed.id)).scalar_one()
+            == "FAILED"
+        )
+        assert (
+            c.execute(select(MissionRow.frozen).where(MissionRow.id == failed.id)).scalar_one()
+            is False
+        )
+        assert (
+            c.execute(
+                select(func.count()).select_from(ResultRow).where(ResultRow.mission_id == clean.id)
+            ).scalar_one()
+            == 1
+        )
+
+
+def test_collection_context_is_explicit_bounded_owner_scoped_and_excludes_hidden(
+    office_mission_setup,
+):
+    from lazyresearch.application.retrieval_models import RetrievalRequest
+
+    ops, owner, topic, collection, content = office_mission_setup
+    store = ops.retrieval.store
+    request = RetrievalRequest(
+        owner, OFFICE_QUESTION, collection_ids=(collection,), limit=2, per_source=1
+    )
+    another = (
+        ops.intake.ingest(
+            owner,
+            "second-office",
+            (
+                IntakeInput(
+                    source_type=SourceType.TEXT,
+                    payload=b"Check licensing. " * 150,
+                ),
+            ),
+        )
+        .entries[0]
+        .content_id
+    )
+    store.add_to_collection(owner, collection, another)
+    store.index(owner, ops.retrieval.chunks)
+    context = store.collection_context(request, ops.retrieval.chunks.identity)
+    assert len(context) == 2 and {c.chunk.content_id for c in context} == {content, another}
+    assert (
+        store.collection_context(replace(request, collection_ids=()), ops.retrieval.chunks.identity)
+        == ()
+    )
+    assert (
+        store.collection_context(
+            replace(request, owner_id=OwnerId(uuid4())), ops.retrieval.chunks.identity
+        )
+        == ()
+    )
+    store.set_visibility(owner, another, "DELETED")
+    assert {
+        c.chunk.content_id for c in store.collection_context(request, ops.retrieval.chunks.identity)
+    } == {content}
+    empty = store.create_collection(owner, "Empty collection")
+    mission = ops.store.create_mission(
+        owner, topic.id, OFFICE_QUESTION, MissionScope(collection_ids=(empty,))
+    )
+    with pytest.raises(MissionError, match="NO_EVIDENCE"):
+        prepare(ops, owner, mission.id)
+    assert not ops.store.versions(owner, topic.id)

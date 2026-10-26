@@ -30,7 +30,7 @@ class MemoryStore:
         )
         self.saved = []
 
-    def candidates(self, owner, cutoff, interests, limit, content_id=None):
+    def candidates(self, owner, cutoff, interests, limit, content_id=None, collection_id=None):
         return (replace(self.item, cutoff=cutoff),)
 
     def history(self, owner, cutoff):

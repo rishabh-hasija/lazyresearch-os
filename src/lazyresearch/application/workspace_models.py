@@ -30,6 +30,7 @@ class MissionView:
     stage: str
     run_sequence: int
     failure: str | None
+    result_id: UUID | None = None
 
 
 @dataclass(frozen=True)

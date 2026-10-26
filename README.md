@@ -260,6 +260,12 @@ The workflow retrieves personal chunks, detects explicit gaps, searches only whe
 
 `store.get_topic`, `get_mission`, `get_result` and `versions` are owner scoped. Publication returns the existing result on retry; versions reflect publication order, while Current Brief follows the highest successful mission run_sequence. Baseline-relative changes retain source/evidence/model/recommendation/action distinctions. `cancel_mission(client, store, owner, mission)` fences publication in PostgreSQL before requesting workflow cancellation. The same mission cannot be rerun after terminal failure/cancellation; create another mission.
 
+If a Research Mission explicitly selects collections and its question search returns no matches,
+it uses a bounded sample of current, visible chunks from those collections as context. This is
+recorded as collection context, with a PARTIAL limitation rather than a lexical/semantic-match
+claim. It never falls back to unrelated workspace sources. Empty evidence still fails without
+publishing an uncited result; ordinary lexical search keeps its all-term matching semantics.
+
 Mission scope defaults: max 3 public queries (currently one deterministic question query), 10 fetched sources, 5 concurrent source tasks, 900 seconds, 8 evidence chunks / 6,000 characters, 2,400 output tokens. Collection IDs, personal/public permissions, retrieval modes and tighter budgets are frozen per mission. Search queries derive only from the question, never private evidence. Pattern sanitization is not universal PII detection. Snippets are discovery hints, not citations. Primary chunks bypass unnecessary source-analysis calls.
 
 Claims remain UNREVIEWED: exact citation validation is not factual entailment. Conflict detection and changed-claim pairing are heuristic. One bounded synthesis repair is permitted. The small real Gemma smoke passed citation validation but missed an explicit source task, so action extraction still needs human review. Historical snapshots remain immutable, and missing evidence never proves a claim false.
